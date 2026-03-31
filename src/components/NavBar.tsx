@@ -1,9 +1,14 @@
 export default function NavBar() {
   return (
-    <nav className="flex justify-between items-center px-10 py-6">
-        <h1 className="font-bold text-lg">
-            Sello Legitimo
-        </h1>
+    <nav className="flex justify-between items-center px-10 py-6 border-b bg-white">
+        <div className="flex flex-col leading-tight">
+            <span className="font-bold text-lg">
+                Sello Legítimo
+            </span>
+            <span className="text-red-500 text-xs font-semibold tracking-wide">
+                SISTEMA ELECTORAL COLOMBIANO
+            </span>
+        </div>
 
         <div className="hidden md:flex gap-8 text-sm">
             <a href="#">Inicio</a>

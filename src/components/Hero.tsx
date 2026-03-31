@@ -1,13 +1,12 @@
 export default function Hero() {
   return (
-    <section className="px-10 py-20 max-w-7xl mx-auto">
+    <section className="px-10 py-20">
 
       <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-        Garantizando la{" "}
-        <span className="text-red-500">
-          Integridad
-        </span>{" "}
-        de la Democracia Colombiana
+        Garantizando la <br />
+        <span className="text-red-500">Integridad</span> de la <br />
+        Democracia <br />
+        Colombiana
       </h1>
 
       <p className="mt-6 text-gray-600 max-w-xl">
