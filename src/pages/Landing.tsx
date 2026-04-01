@@ -3,6 +3,7 @@ import Hero from "../components/Hero"
 import Features from "../components/Features"
 import Organization from "../components/Organization"
 import Entities from "../components/Entities"
+import Footer from "../components/Footer"
 
 export default function Landing() {
   return (
@@ -12,6 +13,7 @@ export default function Landing() {
       <Features />
       <Organization />
       <Entities />
+      <Footer />
     </div>
   )
 }
