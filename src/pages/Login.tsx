@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Lock, User, ArrowRight, Loader2 } from "lucide-react"
 import { requestOtp, verifyOtp } from "../api/auth.api"
 
-// Two steps: "cedula" (step 1) → "otp" (step 2)
+
 type Step = "cedula" | "otp"
 
 export default function Login() {
@@ -22,7 +22,7 @@ export default function Login() {
     setError(null)
     try {
       await requestOtp(cedula)
-      setStep("otp")           // ✅ Reveal OTP field only after success
+      setStep("otp")           
     } catch (err: any) {
       setError(err.response?.data?.message ?? "Error al enviar OTP.")
     } finally {
@@ -40,8 +40,8 @@ export default function Login() {
     setError(null)
     try {
       const token = await verifyOtp(cedula, otp)
-      localStorage.setItem("auth_token", token)   // ✅ Persist JWT
-      window.location.href = "/dashboard"          // ✅ Redirect — adjust to your route
+      localStorage.setItem("auth_token", token)   
+      window.location.href = "/tarjeton"          
     } catch (err: any) {
       setError(err.response?.data?.message ?? "OTP inválido.")
     } finally {
@@ -81,7 +81,7 @@ export default function Login() {
               Inicie sesión para ejercer su derecho al voto de forma segura.
             </p>
 
-            {/* ✅ Error banner */}
+            {/* Error banner */}
             {error && (
               <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
                 {error}
@@ -96,7 +96,7 @@ export default function Login() {
                 <input
                   value={cedula}
                   onChange={(e) => setCedula(e.target.value)}
-                  disabled={step === "otp"}   // ✅ Lock cedula after step 1
+                  disabled={step === "otp"}   
                   className="w-full outline-none disabled:text-gray-400"
                   placeholder="Ingrese su número de identificación"
                 />
@@ -140,7 +140,7 @@ export default function Login() {
               <ArrowRight className="text-gray-400" />
             </div>
 
-            {/* ✅ CONTINUAR — wired up */}
+            {/* CONTINUAR — wired up */}
             <button
               onClick={handleContinue}
               disabled={loading}

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Landing from "./pages/Landing"
 import Login from "./pages/Login"
 import AccessibilityButtons from "./components/AccesibilityButtons"
+import Tarjeton from "./pages/Tarjeton"
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/tarjeton" element={<Tarjeton />}/>
       </Routes>
 
     </BrowserRouter>
