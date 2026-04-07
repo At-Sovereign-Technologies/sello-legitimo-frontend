@@ -1,7 +1,8 @@
-# Changelog
+# Cambios
 
 ## 2026-04-07
 
-- Added frontend devcontainer setup.
-- Added post-create bootstrap script for deterministic npm dependency installation.
-- Added `DEV_ENVIRONMENT.md` and `BOOTSTRAP.md`.
+- Se agregó configuración devcontainer para frontend.
+- Se agregó post-create bootstrap para instalación determinística de dependencias npm.
+- Se agregaron DEV_ENVIRONMENT.md y BOOTSTRAP.md.
+- Se estandarizó documentación en español bajo carpeta docs.

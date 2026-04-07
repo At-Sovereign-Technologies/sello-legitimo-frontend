@@ -5,6 +5,17 @@ import { requestOtp, verifyOtp } from "../api/auth.api"
 
 type Step = "cedula" | "otp"
 
+const resolveApiError = (err: unknown, fallback: string): string => {
+  if (typeof err === "object" && err !== null) {
+    const maybeResponse = (err as { response?: { data?: { message?: unknown } } }).response
+    const message = maybeResponse?.data?.message
+    if (typeof message === "string" && message.trim().length > 0) {
+      return message
+    }
+  }
+  return fallback
+}
+
 export default function Login() {
   const [step, setStep] = useState<Step>("cedula")
   const [cedula, setCedula] = useState("")
@@ -23,8 +34,8 @@ export default function Login() {
     try {
       await requestOtp(cedula)
       setStep("otp")           
-    } catch (err: any) {
-      setError(err.response?.data?.message ?? "Error al enviar OTP.")
+    } catch (err: unknown) {
+      setError(resolveApiError(err, "Error al enviar OTP."))
     } finally {
       setLoading(false)
     }
@@ -42,8 +53,8 @@ export default function Login() {
       const token = await verifyOtp(cedula, otp)
       localStorage.setItem("auth_token", token)   
       window.location.href = "/tarjeton"          
-    } catch (err: any) {
-      setError(err.response?.data?.message ?? "OTP inválido.")
+    } catch (err: unknown) {
+      setError(resolveApiError(err, "OTP inválido."))
     } finally {
       setLoading(false)
     }

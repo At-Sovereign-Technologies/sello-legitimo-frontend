@@ -1,36 +1,44 @@
-# Development Environment
+# Entorno de Desarrollo
 
-## Prerequisites
+## Requisitos
 
-- Docker Desktop or Docker Engine + Docker Compose
-- VS Code
-- Dev Containers extension
+- Node.js 20+
+- npm 10+
+- VS Code (opcional: extensión Dev Containers)
 
-## Quick Start (Dev Container)
+## Inicio rápido
 
-1. Open this repository in VS Code.
-2. Run: Dev Containers: Reopen in Container.
-3. Wait for the post-create step to install dependencies.
-4. Start development server:
+1. Abre el repositorio en VS Code.
+2. Instala dependencias:
+
+```bash
+npm install
+```
+
+3. Copia .env.example a .env y ajusta valores si aplica.
+4. Inicia el servidor de desarrollo:
 
 ```bash
 npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
-5. Open forwarded port 5173.
+5. Abre la app en el puerto 5173.
 
-## Environment Variables
-
-Create a local `.env` file if needed. Do not commit secrets.
+## Variables de entorno
 
 ```env
 VITE_API_BASE_URL=http://localhost:8080
 VITE_AUTH_TIMEOUT_MS=10000
 ```
 
-## Validation
+## Validación
 
 ```bash
 npm run lint
 npm run build
 ```
+
+## Solución de problemas
+
+- Si el puerto 5173 está ocupado, libera el puerto o usa uno alternativo.
+- Si falla autenticación E2E, revisa que el backend exponga endpoints compatibles con /api/v1/auth.

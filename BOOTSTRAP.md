@@ -1,22 +1,22 @@
-# Bootstrap Notes
+# Notas de Bootstrap
 
-## Source
+## Origen
 
-This repository adopts the organization-wide devcontainer migration baseline from the Sello Legitimo workspace.
+Este repositorio adopta la línea base de migración devcontainer definida para org-migration.
 
-## Applied Migration Steps
+## Cambios aplicados
 
-1. Added `.devcontainer/devcontainer.json` with Node 20 + Git feature.
-2. Added `.devcontainer/post-create.sh` for lockfile-safe dependency installation.
-3. Added `DEV_ENVIRONMENT.md`.
-4. Added changelog entry.
+1. Se agregó .devcontainer/devcontainer.json con Node 20 y Git.
+2. Se agregó .devcontainer/post-create.sh para instalación determinística de dependencias.
+3. Se agregó DEV_ENVIRONMENT.md y estructura docs para incorporación.
+4. Se actualizó el registro de cambios con estado de migración.
 
-## Dependency Decisions
+## Decisiones de dependencias
 
-- Node runtime pinned to 20 via devcontainer image.
-- Install strategy is lockfile-first (`npm ci` when lock exists).
+- Runtime: Node 20 fijado por imagen de contenedor.
+- Estrategia de instalación: lockfile-first (npm ci cuando existe lockfile).
 
-## Idempotency
+## Idempotencia
 
-- Reopening the container re-runs setup safely.
-- No secrets are stored in repository files.
+- Reabrir el contenedor vuelve a ejecutar la configuración de forma segura.
+- No se almacenan secretos en archivos versionados.
