@@ -71,3 +71,8 @@ export default defineConfig([
   },
 ])
 ```
+
+## Development Container
+
+- Setup guide: `DEV_ENVIRONMENT.md`
+- Migration details: `BOOTSTRAP.md`
