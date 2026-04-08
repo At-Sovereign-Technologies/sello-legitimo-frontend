@@ -32,7 +32,7 @@ export default function Menu() {
 
             {/* CONSULTA */}
             <button
-              onClick={() => alert("Funcionalidad no implementada")}
+              onClick={() => navigate("/busqueda")}
               className="w-full border border-gray-300 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-100 transition"
             >
               Consulta de Votación
