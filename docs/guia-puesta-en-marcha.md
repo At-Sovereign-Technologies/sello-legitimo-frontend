@@ -140,6 +140,8 @@ docker run --rm -p 8080:80 sello-legitimo-frontend:local
 
 Aplicación estática: **`http://localhost:8080`**.
 
+La imagen usa **`nginx/default.conf`**: `try_files` reenvía rutas desconocidas a **`index.html`**, de modo que **`/tarjeton`**, **`/login`**, etc. funcionan al recargar o al abrir un enlace directo (comportamiento típico de una SPA).
+
 ---
 
 ## 6. Modalidad E — Docker Compose (imagen publicada)
