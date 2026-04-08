@@ -3,6 +3,7 @@ import Landing from "./pages/Landing"
 import Login from "./pages/Login"
 import AccessibilityButtons from "./components/AccesibilityButtons"
 import Tarjeton from "./pages/Tarjeton"
+import Menu from "./pages/Menux"
 
 function App() {
   return (
