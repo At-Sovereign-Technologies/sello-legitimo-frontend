@@ -3,7 +3,10 @@ set -euo pipefail
 
 echo "[bootstrap] Installing frontend dependencies"
 if [ -f package-lock.json ]; then
-  npm ci
+  if ! npm ci; then
+    echo "[bootstrap] npm ci failed (likely lockfile drift). Falling back to npm install to recover."
+    npm install
+  fi
 else
   npm install
 fi
