@@ -1,0 +1,14 @@
+services:
+    frontend:
+        image: ghcr.io/at-sovereign-technologies/sello-legitimo-frontend:latest
+        restart: unless-stopped
+        ports:
+            - 8080:80
+    ngrok:
+        image: ngrok/ngrok:latest
+        restart: unless-stopped
+        environment:
+            - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+        command: ["http", "frontend:8080"]
+        ports:
+            - 4040:4040
