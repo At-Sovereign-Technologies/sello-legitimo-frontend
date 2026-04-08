@@ -1,0 +1,6 @@
+* text=auto
+.gitattributes text eol=lf
+
+# Keep shell scripts LF-only across platforms
+*.sh text eol=lf
+.devcontainer/*.sh text eol=lf
