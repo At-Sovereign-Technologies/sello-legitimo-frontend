@@ -21,6 +21,7 @@ npm run dev -- --host 0.0.0.0 --port 5173
 5. Abre la aplicación en el puerto 5173.
 
 ## Referencias
+- Puesta en marcha (todas las modalidades): [guia-puesta-en-marcha.md](guia-puesta-en-marcha.md)
 - Entorno: ../DEV_ENVIRONMENT.md
 - Solución de problemas: troubleshooting.md
 - Arquitectura: architecture.md

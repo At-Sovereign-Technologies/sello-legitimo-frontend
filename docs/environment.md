@@ -1,5 +1,7 @@
 # Entorno
 
+Resumen de variables; la guía completa de despliegue está en **[guia-puesta-en-marcha.md](guia-puesta-en-marcha.md)**.
+
 ## Requisitos
 - Node.js 20+
 - npm 10+
