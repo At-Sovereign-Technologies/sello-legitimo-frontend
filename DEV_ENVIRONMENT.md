@@ -26,9 +26,14 @@ npm run dev -- --host 0.0.0.0 --port 5173
 
 ## Variables de entorno
 
+Para **ngrok / gateway (Caddy)**: deja `VITE_API_URL` vacío o sin definir; el cliente usa la misma procedencia que la página y envía `/api/...` por el túnel.
+
 ```env
-VITE_API_BASE_URL=http://localhost:8080
 VITE_AUTH_TIMEOUT_MS=10000
+# Opcional: solo si el navegador debe llamar al backend por URL absoluta (no recomendado con HTTPS ngrok).
+# VITE_API_URL=http://localhost:8080
+# Solo Vite: proxy de /api (por defecto gateway en 8181).
+# VITE_DEV_PROXY_TARGET=http://localhost:8181
 ```
 
 ## Validación
