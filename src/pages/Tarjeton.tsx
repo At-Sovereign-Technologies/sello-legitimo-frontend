@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   CheckSquare,
   Play,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react"
 import AccessibilityButtons from "../components/AccesibilityButtons"
 import Footer from "../components/Footer"
+import ComingSoonToast from "../components/ComingSoonToast"
 
 type CandidateId = "juan_pablo" | "elena" | "ricardo" | "blank"
 
@@ -19,10 +21,8 @@ interface Candidate {
   viceLabel: string
   vice: string
   party: string
-  image?: string 
+  image?: string
 }
-
-
 
 const CANDIDATES: Candidate[] = [
   {
@@ -51,15 +51,11 @@ const CANDIDATES: Candidate[] = [
   },
 ]
 
-
-
 function SelectionMark({ selected }: { selected: boolean }) {
   return (
     <div
       className={`absolute top-3 right-3 w-9 h-9 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
-        selected
-          ? "bg-red-500 border-red-500"
-          : "bg-white border-gray-300"
+        selected ? "bg-red-500 border-red-500" : "bg-white border-gray-300"
       }`}
     >
       {selected && (
@@ -97,7 +93,6 @@ function CandidateCard({
           : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
       }`}
     >
-      {/* Photo */}
       <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
         {candidate.image ? (
           <img
@@ -110,16 +105,11 @@ function CandidateCard({
             <User size={64} className="text-gray-300" />
           </div>
         )}
-        {/* selection badge overlay */}
         {selected && (
           <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />
         )}
       </div>
-
-      {/* Mark box */}
       <SelectionMark selected={selected} />
-
-      {/* Info */}
       <div className="p-4">
         <p className="font-bold text-sm leading-tight text-gray-900 uppercase tracking-tight">
           {candidate.name}
@@ -175,6 +165,8 @@ function BlankVoteCard({
 
 export default function VotingBallot() {
   const [selected, setSelected] = useState<CandidateId | null>(null)
+  const [showToast, setShowToast] = useState(false)
+  const navigate = useNavigate()
 
   const selectedCandidate =
     selected === "blank"
@@ -191,10 +183,8 @@ export default function VotingBallot() {
   return (
     <div className="min-h-screen flex flex-col bg-[#f5f6f7] font-sans">
 
-      {/* ── HEADER ── */}
       <header className="w-full border-b bg-white px-8 py-3 flex justify-between items-center sticky top-0 z-30">
         <div className="flex items-center gap-2">
-          {/* Shield logo */}
           <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
             <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
               <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V6L12 2z" />
@@ -210,13 +200,22 @@ export default function VotingBallot() {
         </div>
 
         <nav className="hidden md:flex items-center gap-8 text-sm text-gray-600 font-medium">
-          <a href="#" className="hover:text-gray-900 transition-colors">Inicio</a>
-          <a href="#" className="hover:text-gray-900 transition-colors">Instrucciones</a>
-          <a href="#" className="hover:text-gray-900 transition-colors">Ayuda</a>
+          <button onClick={() => navigate("/")} className="hover:text-gray-900 transition-colors">
+            Inicio
+          </button>
+          <button onClick={() => setShowToast(true)} className="hover:text-gray-900 transition-colors">
+            Instrucciones
+          </button>
+          <button onClick={() => setShowToast(true)} className="hover:text-gray-900 transition-colors">
+            Ayuda
+          </button>
         </nav>
 
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-red-500 hover:bg-red-600 transition-colors text-white text-sm font-semibold px-4 py-2 rounded-lg">
+          <button
+            onClick={() => setShowToast(true)}
+            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 transition-colors text-white text-sm font-semibold px-4 py-2 rounded-lg"
+          >
             <LogOut size={14} />
             Cerrar Sesión
           </button>
@@ -226,7 +225,6 @@ export default function VotingBallot() {
         </div>
       </header>
 
-      {/* ── BREADCRUMB ── */}
       <div className="px-8 py-3 flex items-center gap-1 text-xs">
         <span className="text-red-500 font-semibold hover:underline cursor-pointer">
           Elecciones Presidenciales
@@ -235,10 +233,8 @@ export default function VotingBallot() {
         <span className="text-gray-500">Módulo M4 · Tarjeta Electoral Digital</span>
       </div>
 
-      {/* ── MAIN ── */}
       <main className="flex-1 px-8 pb-16 max-w-6xl mx-auto w-full">
 
-        {/* Title row */}
         <div className="bg-white rounded-2xl border px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
@@ -251,18 +247,23 @@ export default function VotingBallot() {
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <button className="flex items-center gap-2 border rounded-xl px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+            <button
+              onClick={() => setShowToast(true)}
+              className="flex items-center gap-2 border rounded-xl px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+            >
               <Play size={15} className="text-gray-500" />
               Ver instructivo
             </button>
-            <button className="flex items-center gap-2 border rounded-xl px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+            <button
+              onClick={() => setShowToast(true)}
+              className="flex items-center gap-2 border rounded-xl px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+            >
               <ZoomIn size={15} className="text-gray-500" />
               Aumentar Tamaño
             </button>
           </div>
         </div>
 
-        {/* Candidate grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {CANDIDATES.map((c) => (
             <CandidateCard
@@ -278,7 +279,6 @@ export default function VotingBallot() {
           />
         </div>
 
-        {/* Status / CTA bar */}
         <div className="bg-white border rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
@@ -310,6 +310,7 @@ export default function VotingBallot() {
 
           <button
             disabled={!selected}
+            onClick={() => setShowToast(true)}
             className="shrink-0 flex items-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-white font-bold uppercase tracking-wide text-sm px-6 py-3 rounded-xl"
           >
             Revisar mi voto
@@ -320,6 +321,7 @@ export default function VotingBallot() {
 
       <Footer />
       <AccessibilityButtons />
+      <ComingSoonToast isVisible={showToast} onClose={() => setShowToast(false)} />
     </div>
   )
 }

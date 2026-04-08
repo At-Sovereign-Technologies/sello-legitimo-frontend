@@ -1,7 +1,8 @@
 import { useState } from "react"
 import { Lock, User, ArrowRight, Loader2 } from "lucide-react"
 import { requestOtp, verifyOtp } from "../api/auth.api"
-import Header from "../components/Header"
+import Header from "../components/LoginHeader"
+import Footer from "../components/Footer"
 
 
 type Step = "cedula" | "otp"
@@ -179,18 +180,7 @@ export default function Login() {
         </div>
       </main>
 
-      {/* FOOTER — unchanged */}
-      <footer className="w-full border-t bg-white px-10 py-4 flex justify-between items-center text-sm text-gray-500">
-        <div className="flex items-center gap-4">
-          <span className="bg-green-100 text-green-600 px-3 py-1 rounded-lg text-xs">● Conexión Segura</span>
-          <span>Este sistema cumple con estándares internacionales de transparencia electoral.</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button className="px-4 py-2 rounded-lg border">Cancelar</button>
-          <button className="px-4 py-2 rounded-lg bg-black text-white">Español</button>
-        </div>
-      </footer>
-
+      <Footer/>
     </div>
   )
 }
