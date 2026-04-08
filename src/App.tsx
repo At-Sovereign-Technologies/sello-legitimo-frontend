@@ -15,6 +15,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/tarjeton" element={<Tarjeton />}/>
+        <Route path="/menu" element={<Menu />}/>
       </Routes>
 
     </BrowserRouter>
