@@ -9,6 +9,8 @@ services:
         restart: unless-stopped
         environment:
             - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
-        command: ["http", "frontend:8080"]
+        command:
+            - "http"
+            - "frontend:8080"
         ports:
             - 4040:4040
