@@ -1,17 +1,14 @@
-import apiClient from '../api/apiClient'
+import apiClient from "./apiClient"
 
-// Matches MessageResponse record
-interface MessageResponse { message: string }
-
-// Matches TokenResponse record  
-interface TokenResponse { token: string }
-
-export const requestOtp = async (cedula: string): Promise<string> => {
-  const { data } = await apiClient.post<MessageResponse>('/login', { cedula })
-  return data.message
+export const requestOtp = async (cedula: string) => {
+  await apiClient.post("/api/v1/auth/login", { cedula })
 }
 
-export const verifyOtp = async (cedula: string, otp: string): Promise<string> => {
-  const { data } = await apiClient.post<TokenResponse>('/verify', { cedula, otp })
-  return data.token
+export const verifyOtp = async (cedula: string, otp: string) => {
+  const response = await apiClient.post("/api/v1/auth/verify", {
+    cedula,
+    otp
+  })
+
+  return response.data.token
 }
