@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Lock, User, ArrowRight, Loader2 } from "lucide-react"
 import { requestOtp, verifyOtp } from "../api/auth.api"
+import Header from "../components/Header"
 
 
 type Step = "cedula" | "otp"
@@ -68,18 +69,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
 
-      {/* HEADER */}
-      <header className="w-full border-b bg-white px-10 py-4 flex justify-between items-center">
-        <div>
-          <h1 className="font-bold text-lg">Sello Legítimo</h1>
-          <p className="text-xs text-red-500 font-semibold">SISTEMA ELECTORAL COLOMBIANO</p>
-        </div>
-        <div className="flex items-center gap-6 text-sm text-gray-600">
-          <span>Acceso Remoto</span>
-          <span>Módulo M3-RF</span>
-          <span className="bg-gray-100 px-3 py-1 rounded-lg">Guía</span>
-        </div>
-      </header>
+      <Header />
 
       {/* MAIN */}
       <main className="flex-1 px-10 py-10">
