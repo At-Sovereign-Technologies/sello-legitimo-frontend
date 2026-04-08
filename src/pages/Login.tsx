@@ -54,7 +54,7 @@ export default function Login() {
     try {
       const token = await verifyOtp(cedula, otp)
       localStorage.setItem("auth_token", token)   
-      window.location.href = "/tarjeton"          
+      window.location.href = "/menu"          
     } catch (err: unknown) {
       setError(resolveApiError(err, "OTP inválido."))
     } finally {
