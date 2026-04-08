@@ -1,16 +1,20 @@
-import axios from 'axios'
+import axios from "axios"
 
-const apiClient = axios.create({
-  // Vite proxy forwards /api → http://localhost:8080 in dev
-  baseURL: '/api/v1/auth',
-  headers: { 'Content-Type': 'application/json' },
-})
+const API_URL = import.meta.env.VITE_API_URL
 
-// Attach JWT on every request if it exists
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
+// STEP 1 → pedir OTP
+export const requestOtp = async (cedula: string): Promise<void> => {
+  await axios.post(`${API_URL}/api/v1/auth/login`, {
+    cedula
+  })
+}
 
-export default apiClient
+// STEP 2 → verificar OTP y recibir token
+export const verifyOtp = async (cedula: string, otp: string): Promise<string> => {
+  const response = await axios.post(`${API_URL}/api/v1/auth/verify`, {
+    cedula,
+    otp
+  })
+
+  return response.data.token
+}
