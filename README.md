@@ -4,6 +4,7 @@ Interfaz web del sistema Sello Legítimo, construida con React, TypeScript y Vit
 
 ## Documentación
 
+- **Puesta en marcha (desarrollo, Docker, VM, ngrok):** [docs/guia-puesta-en-marcha.md](docs/guia-puesta-en-marcha.md)
 - Guía de incorporación: docs/onboarding.md
 - Guía de entorno: DEV_ENVIRONMENT.md
 - Solución de problemas: docs/troubleshooting.md

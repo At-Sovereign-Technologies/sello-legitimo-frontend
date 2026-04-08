@@ -1,5 +1,7 @@
 # Entorno de Desarrollo
 
+Para **todas las modalidades** de arranque (local, Dev Container, Docker, producción, ngrok/gateway), consulta **[docs/guia-puesta-en-marcha.md](docs/guia-puesta-en-marcha.md)**.
+
 ## Requisitos
 
 - Node.js 20+
