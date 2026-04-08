@@ -18,6 +18,6 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Ingresar al Sistema' }));
 
     expect(screen.getByText('Autenticación Remota')).toBeInTheDocument();
-    expect(screen.getByText(/DOBLE FACTOR DE AUTENTICACIÓN/i)).toBeInTheDocument();
+    expect(screen.getByText(/NÚMERO DE CÉDULA/i)).toBeInTheDocument();
   });
 });
