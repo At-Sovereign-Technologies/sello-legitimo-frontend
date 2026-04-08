@@ -31,7 +31,7 @@ const CANDIDATES: Candidate[] = [
     viceLabel: "Fórmula Vicepresidencial",
     vice: "Marta Lucía Santos",
     party: "Partido Alpha",
-    image: "/candidates/WhatsApp Image 2026-04-07 at 12.55.18 (1).jpeg",
+    image: "/candidates/1.jpg",
   },
   {
     id: "elena",
@@ -39,7 +39,7 @@ const CANDIDATES: Candidate[] = [
     viceLabel: "Fórmula Vicepresidencial",
     vice: "Carlos Arturo Peña",
     party: "Movimiento Beta",
-    image: "/candidates/WhatsApp Image 2026-04-07 at 12.55.18 (2).jpeg",
+    image: "/candidates/2.jpg",
   },
   {
     id: "ricardo",
@@ -47,7 +47,7 @@ const CANDIDATES: Candidate[] = [
     viceLabel: "Fórmula Vicepresidencial",
     vice: "Diana Marcela Ortiz",
     party: "Coalición Gamma",
-    image: "/candidates/WhatsApp Image 2026-04-07 at 12.55.18.jpeg",
+    image: "/candidates/3.webp",
   },
 ]
 
