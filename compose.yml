@@ -11,6 +11,6 @@ services:
             - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
         command:
             - "http"
-            - "frontend:8080"
+            - "frontend:80"
         ports:
             - 4040:4040
