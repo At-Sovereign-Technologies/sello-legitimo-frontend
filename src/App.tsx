@@ -18,10 +18,10 @@ function App() {
       <AccessibilityButtons />
 
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Menu />} />
         <Route path="/login" element={<Login />} />
         <Route path="/tarjeton" element={<Tarjeton />} />
-        <Route path="/menu" element={<Menu />} />
+        <Route path="/landing" element={<Landing />} />
         <Route path="/busqueda" element={<Busqueda />} />
         <Route path="/consulta-ciudadano" element={<ConsultaCiudadano />} />
         <Route path="/resultados" element={<Resultados />} />

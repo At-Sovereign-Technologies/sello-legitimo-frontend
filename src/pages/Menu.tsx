@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { ArrowRight } from "lucide-react"
-import Header from "../components/LoginHeader"
+import Header from "../components/MenuHeader"
 import Footer from "../components/Footer"
 
 export default function Menu() {
@@ -23,7 +23,7 @@ export default function Menu() {
 
             {/* VOTACIÓN REMOTA */}
             <button
-              onClick={() => navigate("/tarjeton")}
+              onClick={() => navigate("/login")}
               className="w-full bg-red-500 text-white py-4 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2"
             >
               Votación Remota
@@ -60,6 +60,14 @@ export default function Menu() {
               className="w-full border border-gray-300 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-100 transition"
             >
               Transparencia Electoral
+            </button>
+
+            {/* SELLO LEGÍTIMO */}
+            <button
+              onClick={() => navigate("/landing")}
+              className="w-full border border-gray-300 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-100 transition"
+            >
+              Sello Legítimo
             </button>
 
           </div>
