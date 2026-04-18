@@ -1,0 +1,197 @@
+import { useState } from "react"
+import { Search, MapPin, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { lookupStation, getParticipationStatus } from "../api/citizen.api"
+import type { VotingStation, ParticipationStatus } from "../types/citizen"
+import Header from "../components/LoginHeader"
+import Footer from "../components/Footer"
+
+const resolveApiError = (err: unknown, fallback: string): string => {
+    if (typeof err === "object" && err !== null) {
+        const maybeResponse = (err as { response?: { data?: { message?: unknown } } }).response
+        const message = maybeResponse?.data?.message
+        if (typeof message === "string" && message.trim().length > 0) return message
+    }
+    return fallback
+}
+
+export default function ConsultaCiudadano() {
+    const [cedula, setCedula] = useState("")
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [station, setStation] = useState<VotingStation | null>(null)
+    const [participation, setParticipation] = useState<ParticipationStatus | null>(null)
+    const [searched, setSearched] = useState(false)
+
+    const handleSearch = async () => {
+        if (!cedula.trim()) {
+            setError("Ingrese su número de cédula.")
+            return
+        }
+        setLoading(true)
+        setError(null)
+        setStation(null)
+        setParticipation(null)
+
+        try {
+            const [stationData, participationData] = await Promise.all([
+                lookupStation(cedula),
+                getParticipationStatus(cedula),
+            ])
+            setStation(stationData)
+            setParticipation(participationData)
+            setSearched(true)
+        } catch (err: unknown) {
+            setError(resolveApiError(err, "No se pudo completar la consulta. Intente nuevamente."))
+            setSearched(true)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
+            <Header />
+
+            <main className="flex-1 px-6 py-10">
+                <div className="max-w-3xl mx-auto">
+
+                    {/* TITLE */}
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl font-bold mb-2">Consulta Ciudadana</h2>
+                        <p className="text-gray-600">
+                            Consulte su puesto de votación asignado y verifique su estado de participación electoral.
+                        </p>
+                    </div>
+
+                    {/* SEARCH FORM */}
+                    <div className="bg-white rounded-2xl shadow-sm border p-8 mb-6">
+                        <label className="text-xs text-gray-500">NÚMERO DE CÉDULA</label>
+                        <div className="flex items-center border rounded-lg px-3 py-3 mt-1 bg-white mb-4">
+                            <Search size={16} className="text-gray-400 mr-2" />
+                            <input
+                                value={cedula}
+                                onChange={(e) => setCedula(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                                className="w-full outline-none"
+                                placeholder="Ingrese su número de identificación"
+                            />
+                        </div>
+
+                        <button
+                            onClick={handleSearch}
+                            disabled={loading}
+                            className="w-full bg-red-500 text-white py-3 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-60"
+                        >
+                            {loading ? (
+                                <Loader2 size={18} className="animate-spin" />
+                            ) : (
+                                "Consultar"
+                            )}
+                        </button>
+                    </div>
+
+                    {/* ERROR */}
+                    {error && (
+                        <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+                            {error}
+                        </div>
+                    )}
+
+                    {/* RESULTS */}
+                    {searched && !error && (
+                        <div className="grid md:grid-cols-2 gap-6">
+
+                            {/* STATION CARD */}
+                            <div className="bg-white rounded-2xl shadow-sm border p-6">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                        <MapPin size={18} className="text-red-500" />
+                                    </div>
+                                    <h3 className="font-bold text-gray-900">Puesto de Votación</h3>
+                                </div>
+
+                                {station ? (
+                                    <div className="space-y-3 text-sm">
+                                        <div>
+                                            <span className="text-xs text-gray-500 uppercase">Nombre</span>
+                                            <p className="font-semibold text-gray-800">{station.name}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs text-gray-500 uppercase">Dirección</span>
+                                            <p className="text-gray-700">{station.address}</p>
+                                        </div>
+                                        <div className="flex gap-6">
+                                            <div>
+                                                <span className="text-xs text-gray-500 uppercase">Ciudad</span>
+                                                <p className="text-gray-700">{station.city}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-xs text-gray-500 uppercase">Departamento</span>
+                                                <p className="text-gray-700">{station.department}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-500">
+                                        No se encontró información del puesto de votación.
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* PARTICIPATION CARD */}
+                            <div className="bg-white rounded-2xl shadow-sm border p-6">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${participation?.hasVoted ? "bg-green-100" : "bg-yellow-100"
+                                        }`}>
+                                        {participation?.hasVoted ? (
+                                            <CheckCircle size={18} className="text-green-600" />
+                                        ) : (
+                                            <XCircle size={18} className="text-yellow-600" />
+                                        )}
+                                    </div>
+                                    <h3 className="font-bold text-gray-900">Estado de Participación</h3>
+                                </div>
+
+                                {participation ? (
+                                    <div className="space-y-3 text-sm">
+                                        <div>
+                                            <span className="text-xs text-gray-500 uppercase">Cédula</span>
+                                            <p className="font-semibold text-gray-800">{participation.cedula}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs text-gray-500 uppercase">Estado</span>
+                                            <p className={`font-bold ${participation.hasVoted ? "text-green-600" : "text-yellow-600"
+                                                }`}>
+                                                {participation.hasVoted ? "Ha ejercido su voto" : "No ha votado"}
+                                            </p>
+                                        </div>
+                                        {participation.hasVoted && participation.votedAt && (
+                                            <div>
+                                                <span className="text-xs text-gray-500 uppercase">Fecha de votación</span>
+                                                <p className="text-gray-700">{participation.votedAt}</p>
+                                            </div>
+                                        )}
+                                        {participation.stationName && (
+                                            <div>
+                                                <span className="text-xs text-gray-500 uppercase">Puesto</span>
+                                                <p className="text-gray-700">{participation.stationName}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-500">
+                                        No se encontró información de participación.
+                                    </p>
+                                )}
+                            </div>
+
+                        </div>
+                    )}
+
+                </div>
+            </main>
+
+            <Footer />
+        </div>
+    )
+}

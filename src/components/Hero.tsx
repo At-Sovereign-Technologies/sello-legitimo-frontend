@@ -1,9 +1,8 @@
-import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { BarChart3, PenLine } from "lucide-react"
-import ComingSoonToast from "./ComingSoonToast"
 
 export default function Hero() {
-  const [showToast, setShowToast] = useState(false)
+  const navigate = useNavigate()
 
   return (
     <section className="px-10 py-20 bg-white">
@@ -21,7 +20,7 @@ export default function Hero() {
 
       <div className="mt-8 flex gap-4">
         <button
-          onClick={() => setShowToast(true)}
+          onClick={() => navigate("/consulta-ciudadano")}
           className="flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition"
         >
           <PenLine size={18} />
@@ -29,15 +28,13 @@ export default function Hero() {
         </button>
 
         <button
-          onClick={() => setShowToast(true)}
+          onClick={() => navigate("/resultados")}
           className="flex items-center gap-2 border px-6 py-3 rounded-lg hover:bg-gray-100 transition"
         >
           <BarChart3 size={18} />
           Ver Resultados en Vivo
         </button>
       </div>
-
-      <ComingSoonToast isVisible={showToast} onClose={() => setShowToast(false)} />
     </section>
   )
 }

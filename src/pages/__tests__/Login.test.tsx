@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import Login from '../Login';
 import { requestOtp } from '../../api/auth.api';
 
@@ -9,13 +10,20 @@ vi.mock('../../api/auth.api', () => ({
   verifyOtp: vi.fn(),
 }));
 
+const renderLogin = () =>
+  render(
+    <MemoryRouter>
+      <Login />
+    </MemoryRouter>
+  );
+
 describe('Login', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renders cedula step and does not show OTP field initially', () => {
-    render(<Login />);
+    renderLogin();
 
     expect(screen.getByText('Autenticación Remota')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Ingrese su número de identificación')).toBeInTheDocument();
@@ -25,7 +33,7 @@ describe('Login', () => {
 
   it('accepts cedula input when the user types', async () => {
     const user = userEvent.setup();
-    render(<Login />);
+    renderLogin();
 
     const cedulaInput = screen.getByPlaceholderText('Ingrese su número de identificación');
     await user.type(cedulaInput, '1234567890');
@@ -37,7 +45,7 @@ describe('Login', () => {
     const user = userEvent.setup();
     vi.mocked(requestOtp).mockResolvedValue(undefined);
 
-    render(<Login />);
+    renderLogin();
 
     await user.type(screen.getByPlaceholderText('Ingrese su número de identificación'), '1234567890');
     await user.click(screen.getByRole('button', { name: /CONTINUAR/i }));
@@ -53,3 +61,4 @@ describe('Login', () => {
     expect(otpInput).toHaveValue('123456');
   });
 });
+

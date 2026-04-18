@@ -32,10 +32,34 @@ export default function Menu() {
 
             {/* CONSULTA */}
             <button
-              onClick={() => navigate("/busqueda")}
+              onClick={() => navigate("/consulta-ciudadano")}
               className="w-full border border-gray-300 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-100 transition"
             >
-              Consulta de Votación
+              Consulta Ciudadana
+            </button>
+
+            {/* RESULTADOS */}
+            <button
+              onClick={() => navigate("/resultados")}
+              className="w-full border border-gray-300 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-100 transition"
+            >
+              Resultados Electorales
+            </button>
+
+            {/* ELECCIONES */}
+            <button
+              onClick={() => navigate("/elecciones")}
+              className="w-full border border-gray-300 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-100 transition"
+            >
+              Elecciones Activas
+            </button>
+
+            {/* TRANSPARENCIA */}
+            <button
+              onClick={() => navigate("/transparencia")}
+              className="w-full border border-gray-300 text-gray-700 py-4 rounded-xl font-semibold hover:bg-gray-100 transition"
+            >
+              Transparencia Electoral
             </button>
 
           </div>
@@ -47,3 +71,4 @@ export default function Menu() {
     </div>
   )
 }
+

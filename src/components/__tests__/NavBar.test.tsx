@@ -20,10 +20,10 @@ describe('NavBar', () => {
     expect(screen.getByText('Sello Legítimo')).toBeInTheDocument();
     expect(screen.getByText('SISTEMA ELECTORAL COLOMBIANO')).toBeInTheDocument();
     expect(screen.getByText('Inicio')).toBeInTheDocument();
-    expect(screen.getByText('Transparencia')).toBeInTheDocument();
+    expect(screen.getByText('Consulta')).toBeInTheDocument();
     expect(screen.getByText('Resultados')).toBeInTheDocument();
-    expect(screen.getByText('Auditoría')).toBeInTheDocument();
-    expect(screen.getByText('Contacto')).toBeInTheDocument();
+    expect(screen.getByText('Elecciones')).toBeInTheDocument();
+    expect(screen.getByText('Transparencia')).toBeInTheDocument();
   });
 
   it('navigates to login when the main button is clicked', async () => {
