@@ -3,7 +3,6 @@ import Landing from "./pages/Landing"
 import Login from "./pages/Login"
 import AccessibilityButtons from "./components/AccesibilityButtons"
 import Tarjeton from "./pages/Tarjeton"
-import Menu from "./pages/Menu"
 import Busqueda from "./pages/Busqueda"
 import ConsultaCiudadano from "./pages/ConsultaCiudadano"
 import Resultados from "./pages/Resultados"
@@ -18,7 +17,7 @@ function App() {
       <AccessibilityButtons />
 
       <Routes>
-        <Route path="/" element={<Menu />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/tarjeton" element={<Tarjeton />} />
         <Route path="/landing" element={<Landing />} />
