@@ -2,7 +2,7 @@ import apiClient from "./apiClient"
 import type { Acta, AuditEntry } from "../types/transparency"
 
 export const getActas = async (): Promise<Acta[]> => {
-    const response = await apiClient.get<Acta[]>("/api/v1/transparency/actas")
+    const response = await apiClient.get<Acta[]>("/api/v1/transparency/election/${id}")
     return response.data
 }
 
