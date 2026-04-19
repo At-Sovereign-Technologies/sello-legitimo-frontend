@@ -8,8 +8,8 @@ import Header from "../components/LoginHeader"
 import Footer from "../components/Footer"
 import type { CandidateResult } from "../types/results"
 
-function ResultBar({ candidate, maxVotes, totalVotes }: { candidate: CandidateResult; maxVotes: number; totalVotes: number }) {
-    const barWidth = maxVotes > 0 ? (candidate.votes / maxVotes) * 100 : 0
+function ResultBar({ candidate, totalVotes }: { candidate: CandidateResult; totalVotes: number }) {
+    const barWidth = totalVotes > 0 ? (candidate.votes / totalVotes) * 100 : 0
     const percentage = totalVotes > 0 ? (candidate.votes / totalVotes) * 100 : 0
 
     return (
@@ -79,10 +79,6 @@ export default function Resultados() {
             setLoadingResults(false)
         }
     }
-
-    const maxVotes = results
-        ? Math.max(...results.candidates.map((c) => c.votes), 1)
-        : 1
 
     const selectedElection = elections.find((e) => e.id === selectedId)
 
@@ -199,7 +195,6 @@ export default function Resultados() {
                                         <ResultBar
                                             key={candidate.name}
                                             candidate={candidate}
-                                            maxVotes={maxVotes}
                                             totalVotes={results.totalVotes}
                                         />
                                     ))}
