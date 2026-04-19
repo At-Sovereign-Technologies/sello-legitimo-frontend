@@ -1,81 +1,36 @@
 import { useState, useEffect } from "react"
-import { Calendar, ChevronDown, ChevronUp, Loader2, AlertCircle, Vote } from "lucide-react"
+import { Calendar, Loader2, AlertCircle, Vote, Search } from "lucide-react"
 import { getActiveElections } from "../api/elections.api"
 import type { Election } from "../types/elections"
 import Header from "../components/LoginHeader"
 import Footer from "../components/Footer"
 
 const statusConfig: Record<Election["status"], { label: string; bg: string; text: string }> = {
-    active: { label: "Activa", bg: "bg-green-100", text: "text-green-700" },
-    upcoming: { label: "Próxima", bg: "bg-blue-100", text: "text-blue-700" },
-    completed: { label: "Finalizada", bg: "bg-gray-100", text: "text-gray-600" },
+    ACTIVE: { label: "Activa", bg: "bg-green-100", text: "text-green-700" },
+    UPCOMING: { label: "Próxima", bg: "bg-blue-100", text: "text-blue-700" },
+    COMPLETED: { label: "Finalizada", bg: "bg-gray-100", text: "text-gray-600" },
 }
 
 function ElectionCard({ election }: { election: Election }) {
-    const [expanded, setExpanded] = useState(false)
     const status = statusConfig[election.status]
 
     return (
         <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition overflow-hidden">
-            <button
-                onClick={() => setExpanded(!expanded)}
-                className="w-full text-left p-6 flex items-start justify-between gap-4 cursor-pointer"
-            >
+            <div className="w-full text-left p-6 flex items-start justify-between gap-4">
                 <div className="flex items-start gap-4 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
                         <Vote size={18} className="text-red-500" />
                     </div>
                     <div className="min-w-0">
-                        <h3 className="font-bold text-gray-900 text-lg">{election.title}</h3>
-                        <p className="text-sm text-gray-500 mt-1">{election.type}</p>
+                        <h3 className="font-bold text-gray-900 text-lg">{election.name}</h3>
                         <div className="flex items-center gap-2 mt-2 flex-wrap">
                             <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${status.bg} ${status.text}`}>
                                 {status.label}
                             </span>
-                            <span className="text-xs text-gray-400 flex items-center gap-1">
-                                <Calendar size={12} />
-                                {election.startDate} — {election.endDate}
-                            </span>
                         </div>
                     </div>
                 </div>
-                <div className="shrink-0 mt-1">
-                    {expanded ? (
-                        <ChevronUp size={20} className="text-gray-400" />
-                    ) : (
-                        <ChevronDown size={20} className="text-gray-400" />
-                    )}
-                </div>
-            </button>
-
-            {expanded && (
-                <div className="border-t px-6 py-5 bg-gray-50">
-                    <div className="space-y-4 text-sm">
-                        <div>
-                            <span className="text-xs text-gray-500 uppercase font-semibold">Descripción</span>
-                            <p className="text-gray-700 mt-1">{election.description}</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <span className="text-xs text-gray-500 uppercase font-semibold">Fecha de Inicio</span>
-                                <p className="text-gray-700 mt-1">{election.startDate}</p>
-                            </div>
-                            <div>
-                                <span className="text-xs text-gray-500 uppercase font-semibold">Fecha de Cierre</span>
-                                <p className="text-gray-700 mt-1">{election.endDate}</p>
-                            </div>
-                        </div>
-                        {election.totalRegisteredVoters !== undefined && (
-                            <div>
-                                <span className="text-xs text-gray-500 uppercase font-semibold">Votantes Registrados</span>
-                                <p className="text-gray-700 mt-1 font-semibold">
-                                    {election.totalRegisteredVoters.toLocaleString()}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            </div>
         </div>
     )
 }
@@ -84,6 +39,8 @@ export default function Elecciones() {
     const [elections, setElections] = useState<Election[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [search, setSearch] = useState("")
+    const [statusFilter, setStatusFilter] = useState<Election["status"] | "ALL">("ALL")
 
     const fetchElections = async () => {
         setLoading(true)
@@ -102,6 +59,12 @@ export default function Elecciones() {
         fetchElections()
     }, [])
 
+    const filtered = elections.filter((e) => {
+        const matchesSearch = e.name.toLowerCase().includes(search.toLowerCase())
+        const matchesStatus = statusFilter === "ALL" || e.status === statusFilter
+        return matchesSearch && matchesStatus
+    })
+
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
             <Header />
@@ -116,6 +79,31 @@ export default function Elecciones() {
                             Consulte las elecciones vigentes y su configuración pública.
                         </p>
                     </div>
+
+                    {/* SEARCH & FILTER */}
+                    {!loading && !error && (
+                        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                            <div className="flex items-center border rounded-lg px-3 py-2.5 bg-white flex-1">
+                                <Search size={16} className="text-gray-400 mr-2 shrink-0" />
+                                <input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="w-full outline-none text-sm"
+                                    placeholder="Buscar por nombre..."
+                                />
+                            </div>
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value as Election["status"] | "ALL")}
+                                className="border rounded-lg px-3 py-2.5 bg-white text-sm text-gray-700 outline-none cursor-pointer"
+                            >
+                                <option value="ALL">Todos los estados</option>
+                                <option value="ACTIVE">Activa</option>
+                                <option value="UPCOMING">Próxima</option>
+                                <option value="COMPLETED">Finalizada</option>
+                            </select>
+                        </div>
+                    )}
 
                     {/* LOADING */}
                     {loading && (
@@ -140,19 +128,19 @@ export default function Elecciones() {
                     )}
 
                     {/* LIST */}
-                    {!loading && !error && elections.length > 0 && (
+                    {!loading && !error && filtered.length > 0 && (
                         <div className="space-y-4">
-                            {elections.map((election) => (
+                            {filtered.map((election) => (
                                 <ElectionCard key={election.id} election={election} />
                             ))}
                         </div>
                     )}
 
                     {/* EMPTY */}
-                    {!loading && !error && elections.length === 0 && (
+                    {!loading && !error && filtered.length === 0 && (
                         <div className="bg-white rounded-2xl border p-8 text-center">
                             <Calendar size={40} className="text-gray-300 mx-auto mb-4" />
-                            <p className="text-gray-500 font-semibold">No hay elecciones activas.</p>
+                            <p className="text-gray-500 font-semibold">No se encontraron elecciones.</p>
                             <p className="text-sm text-gray-400 mt-1">
                                 Las elecciones se publicarán cuando sean programadas.
                             </p>

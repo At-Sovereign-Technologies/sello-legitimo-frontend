@@ -1,14 +1,15 @@
 import apiClient from "./apiClient"
-import type { Acta, AuditEntry } from "../types/transparency"
+import type { TransparencyResponse } from "../types/transparency"
 
-export const getActas = async (): Promise<Acta[]> => {
-    const response = await apiClient.get<Acta[]>("/api/v1/transparency/election/${id}")
-    return response.data
-}
+export const getTransparency = async (
+  electionId: number
+): Promise<TransparencyResponse> => {
+  const response = await apiClient.get<TransparencyResponse>(
+    "/api/v1/transparency",
+    {
+      params: { electionId },
+    }
+  )
 
-export const getAuditTrail = async (): Promise<AuditEntry[]> => {
-    const response = await apiClient.get<AuditEntry[]>(
-        "/api/v1/transparency/audit"
-    )
-    return response.data
+  return response.data
 }

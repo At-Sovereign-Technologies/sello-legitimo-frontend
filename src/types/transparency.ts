@@ -1,17 +1,10 @@
-export interface Acta {
-    id: string
-    stationId: string
-    stationName: string
-    totalVotes: number
-    digitalSignature: string
-    createdAt: string
-    verified: boolean
+export interface TransparencyRecord {
+  eventType: string
+  description: string
+  timestamp: string
 }
 
-export interface AuditEntry {
-    id: string
-    action: string
-    actor: string
-    timestamp: string
-    details: string
+export interface TransparencyResponse {
+  electionId: number
+  records: TransparencyRecord[]
 }

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Search, MapPin, CheckCircle, XCircle, Loader2 } from "lucide-react"
-import { lookupStation, getParticipationStatus } from "../api/citizen.api"
-import type { VotingStation, ParticipationStatus } from "../types/citizen"
+import { getCitizen } from "../api/citizen.api"
+import type { CitizenResponse } from "../types/citizen"
 import Header from "../components/LoginHeader"
 import Footer from "../components/Footer"
 
@@ -15,30 +15,25 @@ const resolveApiError = (err: unknown, fallback: string): string => {
 }
 
 export default function ConsultaCiudadano() {
-    const [cedula, setCedula] = useState("")
+    const [document, setDocument] = useState("")
+    const [result, setResult] = useState<CitizenResponse | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [station, setStation] = useState<VotingStation | null>(null)
-    const [participation, setParticipation] = useState<ParticipationStatus | null>(null)
     const [searched, setSearched] = useState(false)
 
     const handleSearch = async () => {
-        if (!cedula.trim()) {
-            setError("Ingrese su número de cédula.")
+        if (!document.trim()) {
+            setError("Ingrese su número de documento.")
             return
         }
+
         setLoading(true)
         setError(null)
-        setStation(null)
-        setParticipation(null)
-
+        setResult(null)
+        
         try {
-            const [stationData, participationData] = await Promise.all([
-                lookupStation(cedula),
-                getParticipationStatus(cedula),
-            ])
-            setStation(stationData)
-            setParticipation(participationData)
+            const data = await getCitizen(document)
+            setResult(data)
             setSearched(true)
         } catch (err: unknown) {
             setError(resolveApiError(err, "No se pudo completar la consulta. Intente nuevamente."))
@@ -69,8 +64,8 @@ export default function ConsultaCiudadano() {
                         <div className="flex items-center border rounded-lg px-3 py-3 mt-1 bg-white mb-4">
                             <Search size={16} className="text-gray-400 mr-2" />
                             <input
-                                value={cedula}
-                                onChange={(e) => setCedula(e.target.value)}
+                                value={document}
+                                onChange={(e) => setDocument(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                                 className="w-full outline-none"
                                 placeholder="Ingrese su número de identificación"
@@ -98,7 +93,7 @@ export default function ConsultaCiudadano() {
                     )}
 
                     {/* RESULTS */}
-                    {searched && !error && (
+                    {searched && !error && result && (
                         <div className="grid md:grid-cols-2 gap-6">
 
                             {/* STATION CARD */}
@@ -110,25 +105,11 @@ export default function ConsultaCiudadano() {
                                     <h3 className="font-bold text-gray-900">Puesto de Votación</h3>
                                 </div>
 
-                                {station ? (
+                                {result.pollingStation ? (
                                     <div className="space-y-3 text-sm">
                                         <div>
-                                            <span className="text-xs text-gray-500 uppercase">Nombre</span>
-                                            <p className="font-semibold text-gray-800">{station.name}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs text-gray-500 uppercase">Dirección</span>
-                                            <p className="text-gray-700">{station.address}</p>
-                                        </div>
-                                        <div className="flex gap-6">
-                                            <div>
-                                                <span className="text-xs text-gray-500 uppercase">Ciudad</span>
-                                                <p className="text-gray-700">{station.city}</p>
-                                            </div>
-                                            <div>
-                                                <span className="text-xs text-gray-500 uppercase">Departamento</span>
-                                                <p className="text-gray-700">{station.department}</p>
-                                            </div>
+                                            <span className="text-xs text-gray-500 uppercase">Puesto Asignado</span>
+                                            <p className="font-semibold text-gray-800">{result.pollingStation}</p>
                                         </div>
                                     </div>
                                 ) : (
@@ -141,9 +122,8 @@ export default function ConsultaCiudadano() {
                             {/* PARTICIPATION CARD */}
                             <div className="bg-white rounded-2xl shadow-sm border p-6">
                                 <div className="flex items-center gap-2 mb-4">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${participation?.hasVoted ? "bg-green-100" : "bg-yellow-100"
-                                        }`}>
-                                        {participation?.hasVoted ? (
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${result.hasVoted ? "bg-green-100" : "bg-yellow-100"}`}>
+                                        {result.hasVoted ? (
                                             <CheckCircle size={18} className="text-green-600" />
                                         ) : (
                                             <XCircle size={18} className="text-yellow-600" />
@@ -152,37 +132,18 @@ export default function ConsultaCiudadano() {
                                     <h3 className="font-bold text-gray-900">Estado de Participación</h3>
                                 </div>
 
-                                {participation ? (
-                                    <div className="space-y-3 text-sm">
-                                        <div>
-                                            <span className="text-xs text-gray-500 uppercase">Cédula</span>
-                                            <p className="font-semibold text-gray-800">{participation.cedula}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-xs text-gray-500 uppercase">Estado</span>
-                                            <p className={`font-bold ${participation.hasVoted ? "text-green-600" : "text-yellow-600"
-                                                }`}>
-                                                {participation.hasVoted ? "Ha ejercido su voto" : "No ha votado"}
-                                            </p>
-                                        </div>
-                                        {participation.hasVoted && participation.votedAt && (
-                                            <div>
-                                                <span className="text-xs text-gray-500 uppercase">Fecha de votación</span>
-                                                <p className="text-gray-700">{participation.votedAt}</p>
-                                            </div>
-                                        )}
-                                        {participation.stationName && (
-                                            <div>
-                                                <span className="text-xs text-gray-500 uppercase">Puesto</span>
-                                                <p className="text-gray-700">{participation.stationName}</p>
-                                            </div>
-                                        )}
+                                <div className="space-y-3 text-sm">
+                                    <div>
+                                        <span className="text-xs text-gray-500 uppercase">Cédula</span>
+                                        <p className="font-semibold text-gray-800">{result.document}</p>
                                     </div>
-                                ) : (
-                                    <p className="text-sm text-gray-500">
-                                        No se encontró información de participación.
-                                    </p>
-                                )}
+                                    <div>
+                                        <span className="text-xs text-gray-500 uppercase">Estado</span>
+                                        <p className={`font-bold ${result.hasVoted ? "text-green-600" : "text-yellow-600"}`}>
+                                            {result.hasVoted ? "Ha ejercido su voto" : "No ha votado"}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
                         </div>
