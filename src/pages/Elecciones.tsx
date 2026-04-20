@@ -9,13 +9,11 @@ const statusConfig: Record<string, { label: string; bg: string; text: string }> 
     ACTIVE: { label: "Activa", bg: "bg-green-100", text: "text-green-700" },
     UPCOMING: { label: "Próxima", bg: "bg-blue-100", text: "text-blue-700" },
     COMPLETED: { label: "Finalizada", bg: "bg-gray-100", text: "text-gray-600" },
-    active: { label: "Activa", bg: "bg-green-100", text: "text-green-700" },
-    upcoming: { label: "Próxima", bg: "bg-blue-100", text: "text-blue-700" },
-    completed: { label: "Finalizada", bg: "bg-gray-100", text: "text-gray-600" },
 }
 
 function ElectionCard({ election }: { election: Election }) {
-    const status = statusConfig[election.status] ?? { label: election.status, bg: "bg-gray-100", text: "text-gray-600" }
+    const normalizedStatus = election.status?.toUpperCase()
+    const status = statusConfig[normalizedStatus] ?? { label: election.status, bg: "bg-gray-100", text: "text-gray-600" }
 
     return (
         <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition overflow-hidden">
@@ -65,7 +63,7 @@ export default function Elecciones() {
 
     const filtered = elections.filter((e) => {
         const matchesSearch = e.name.toLowerCase().includes(search.toLowerCase())
-        const matchesStatus = statusFilter === "ALL" || e.status === statusFilter
+        const matchesStatus = statusFilter === "ALL" || e.status?.toUpperCase() === statusFilter
         return matchesSearch && matchesStatus
     })
 
