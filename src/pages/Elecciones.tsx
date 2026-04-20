@@ -5,14 +5,17 @@ import type { Election } from "../types/elections"
 import Header from "../components/LoginHeader"
 import Footer from "../components/Footer"
 
-const statusConfig: Record<Election["status"], { label: string; bg: string; text: string }> = {
+const statusConfig: Record<string, { label: string; bg: string; text: string }> = {
     ACTIVE: { label: "Activa", bg: "bg-green-100", text: "text-green-700" },
     UPCOMING: { label: "Próxima", bg: "bg-blue-100", text: "text-blue-700" },
     COMPLETED: { label: "Finalizada", bg: "bg-gray-100", text: "text-gray-600" },
+    active: { label: "Activa", bg: "bg-green-100", text: "text-green-700" },
+    upcoming: { label: "Próxima", bg: "bg-blue-100", text: "text-blue-700" },
+    completed: { label: "Finalizada", bg: "bg-gray-100", text: "text-gray-600" },
 }
 
 function ElectionCard({ election }: { election: Election }) {
-    const status = statusConfig[election.status]
+    const status = statusConfig[election.status] ?? { label: election.status, bg: "bg-gray-100", text: "text-gray-600" }
 
     return (
         <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition overflow-hidden">
@@ -40,13 +43,14 @@ export default function Elecciones() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [search, setSearch] = useState("")
-    const [statusFilter, setStatusFilter] = useState<Election["status"] | "ALL">("ALL")
+    const [statusFilter, setStatusFilter] = useState<string>("ALL")
 
     const fetchElections = async () => {
         setLoading(true)
         setError(null)
         try {
             const data = await getActiveElections()
+            console.log("elections:", data)
             setElections(data)
         } catch {
             setError("No se pudieron cargar las elecciones. Intente nuevamente.")
@@ -94,7 +98,7 @@ export default function Elecciones() {
                             </div>
                             <select
                                 value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value as Election["status"] | "ALL")}
+                                onChange={(e) => setStatusFilter(e.target.value)}
                                 className="border rounded-lg px-3 py-2.5 bg-white text-sm text-gray-700 outline-none cursor-pointer"
                             >
                                 <option value="ALL">Todos los estados</option>
