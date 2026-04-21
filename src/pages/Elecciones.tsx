@@ -9,6 +9,8 @@ const statusConfig: Record<string, { label: string; bg: string; text: string }> 
     ACTIVE: { label: "Activa", bg: "bg-green-100", text: "text-green-700" },
     UPCOMING: { label: "Próxima", bg: "bg-blue-100", text: "text-blue-700" },
     COMPLETED: { label: "Finalizada", bg: "bg-gray-100", text: "text-gray-600" },
+    FINISHED:   { label: "Finalizada", bg: "bg-gray-100",  text: "text-gray-600" },
+
 }
 
 function ElectionCard({ election }: { election: Election }) {
