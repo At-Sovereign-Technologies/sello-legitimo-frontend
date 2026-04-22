@@ -15,9 +15,9 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: 'Ingresar al Sistema' }));
+    await user.click(screen.getByRole('button', { name: 'Consulta Ciudadana' }));
 
-    expect(screen.getByText('Autenticación Remota')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Consulta Ciudadana' })).toBeInTheDocument();
     expect(screen.getByText(/NÚMERO DE CÉDULA/i)).toBeInTheDocument();
   });
 });

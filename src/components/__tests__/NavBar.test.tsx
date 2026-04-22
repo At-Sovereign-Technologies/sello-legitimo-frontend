@@ -19,20 +19,19 @@ describe('NavBar', () => {
 
     expect(screen.getByText('Sello Legítimo')).toBeInTheDocument();
     expect(screen.getByText('SISTEMA ELECTORAL COLOMBIANO')).toBeInTheDocument();
-    expect(screen.getByText('Inicio')).toBeInTheDocument();
-    expect(screen.getByText('Consulta')).toBeInTheDocument();
-    expect(screen.getByText('Resultados')).toBeInTheDocument();
-    expect(screen.getByText('Elecciones')).toBeInTheDocument();
-    expect(screen.getByText('Transparencia')).toBeInTheDocument();
+    expect(screen.getByText('Consulta Ciudadana')).toBeInTheDocument();
+    expect(screen.getByText('Resultados Electorales')).toBeInTheDocument();
+    expect(screen.getByText('Elecciones Activas')).toBeInTheDocument();
+    expect(screen.getByText('Transparencia Electoral')).toBeInTheDocument();
   });
 
-  it('navigates to login when the main button is clicked', async () => {
+  it('navigates to citizen query when clicking the first nav item', async () => {
     const user = userEvent.setup();
     render(<NavBar />);
 
-    await user.click(screen.getByRole('button', { name: 'Ingresar al Sistema' }));
+    await user.click(screen.getByRole('button', { name: 'Consulta Ciudadana' }));
 
     expect(navigateMock).toHaveBeenCalledOnce();
-    expect(navigateMock).toHaveBeenCalledWith('/login');
+    expect(navigateMock).toHaveBeenCalledWith('/consulta-ciudadano');
   });
 });
