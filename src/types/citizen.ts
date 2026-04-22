@@ -1,5 +1,7 @@
 export interface CitizenResponse {
   document: string
   pollingStation: string
-  hasVoted: boolean
+  status: string
+  hasFines: boolean
+  isMandatory: boolean
 }
