@@ -4,7 +4,7 @@ import { getTransparency } from "../api/transparency.api"
 import { getActiveElections } from "../api/elections.api"
 import type { TransparencyResponse, TransparencyRecord } from "../types/transparency"
 import type { Election } from "../types/elections"
-import Header from "../components/LoginHeader"
+import NavBar from "../components/NavBar"
 import Footer from "../components/Footer"
 
 function RecordTimeline({ records }: { records: TransparencyRecord[] }) {
@@ -90,7 +90,7 @@ export default function Transparencia() {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
-            <Header />
+            <NavBar />
 
             <main className="flex-1 px-6 py-10">
                 <div className="max-w-5xl mx-auto">

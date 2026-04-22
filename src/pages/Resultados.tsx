@@ -4,7 +4,7 @@ import { getElectionResults } from "../api/results.api"
 import { getActiveElections } from "../api/elections.api"
 import type { ElectionResults } from "../types/results"
 import type { Election } from "../types/elections"
-import Header from "../components/LoginHeader"
+import NavBar from "../components/NavBar"
 import Footer from "../components/Footer"
 import type { CandidateResult } from "../types/results"
 
@@ -84,7 +84,7 @@ export default function Resultados() {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
-            <Header />
+            <NavBar />
 
             <main className="flex-1 px-6 py-10">
                 <div className="max-w-4xl mx-auto">

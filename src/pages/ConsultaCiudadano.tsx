@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Search, MapPin, CheckCircle, XCircle, Loader2 } from "lucide-react"
 import { getCitizen } from "../api/citizen.api"
 import type { CitizenResponse } from "../types/citizen"
-import Header from "../components/LoginHeader"
+import NavBar from "../components/NavBar"
 import Footer from "../components/Footer"
 
 const resolveApiError = (err: unknown, fallback: string): string => {
@@ -30,7 +30,7 @@ export default function ConsultaCiudadano() {
         setLoading(true)
         setError(null)
         setResult(null)
-        
+
         try {
             const data = await getCitizen(document)
             setResult(data)
@@ -45,7 +45,7 @@ export default function ConsultaCiudadano() {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
-            <Header />
+            <NavBar />
 
             <main className="flex-1 px-6 py-10">
                 <div className="max-w-3xl mx-auto">

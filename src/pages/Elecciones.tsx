@@ -2,14 +2,14 @@ import { useState, useEffect } from "react"
 import { Calendar, Loader2, AlertCircle, Vote, Search } from "lucide-react"
 import { getActiveElections } from "../api/elections.api"
 import type { Election } from "../types/elections"
-import Header from "../components/LoginHeader"
+import NavBar from "../components/NavBar"
 import Footer from "../components/Footer"
 
 const statusConfig: Record<string, { label: string; bg: string; text: string }> = {
     ACTIVE: { label: "Activa", bg: "bg-green-100", text: "text-green-700" },
     UPCOMING: { label: "Próxima", bg: "bg-blue-100", text: "text-blue-700" },
     COMPLETED: { label: "Finalizada", bg: "bg-gray-100", text: "text-gray-600" },
-    FINISHED:   { label: "Finalizada", bg: "bg-gray-100",  text: "text-gray-600" },
+    FINISHED: { label: "Finalizada", bg: "bg-gray-100", text: "text-gray-600" },
 
 }
 
@@ -71,7 +71,7 @@ export default function Elecciones() {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
-            <Header />
+            <NavBar />
 
             <main className="flex-1 px-6 py-10">
                 <div className="max-w-4xl mx-auto">
