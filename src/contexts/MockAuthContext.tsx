@@ -1,10 +1,11 @@
-import React, {
-    createContext,
-    useContext,
-    useState,
-    useEffect,
-    ReactNode,
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
 } from "react";
+
+import type { ReactNode } from "react";
 
 export type MockRole =
     | "CANDIDATO"
