@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import {
-  BarChart3, RefreshCw, Loader2, AlertCircle,
+  BarChart3, Loader2, AlertCircle,
   History, GitCompare, TrendingUp, ChevronDown, ChevronUp, Minus,
 } from "lucide-react"
 import { getElectionResults, getResultsHistory, getResultsComparison, getResultsTrends } from "../api/results.api"
