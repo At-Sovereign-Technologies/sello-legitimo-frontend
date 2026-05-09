@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Lock, User, ArrowRight, Loader2 } from "lucide-react";
 import { requestOtp, verifyOtp } from "../api/auth.api";
+import { storeAuthToken } from "../services/authService";
 import Header from "../components/LoginHeader";
 import Footer from "../components/Footer";
 
@@ -54,7 +55,7 @@ export default function Login() {
         setError(null);
         try {
             const token = await verifyOtp(cedula, otp);
-            localStorage.setItem("auth_token", token);
+            storeAuthToken(token, cedula);
             window.location.href = "/menu";
         } catch (err: unknown) {
             setError(resolveApiError(err, "OTP inválido."));
