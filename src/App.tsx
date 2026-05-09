@@ -16,6 +16,7 @@ import Callback from "./pages/gestion-preelectoral/Callback";
 import GestionExcusas from "./pages/gestion-preelectoral/GestionExcusas";
 import SorteoJurados from "./pages/gestion-preelectoral/SorteoJurados";
 import ControlAsistencia from "./pages/gestion-preelectoral/ControlAsistencia";
+import AperturaMesa from "./pages/gestion-preelectoral/AperturaMesa";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ParametrosBase from "./pages/configuracion-elecciones/ParametrosBase";
 import MetodoElectoralReglas from "./pages/configuracion-elecciones/MetodoElectoralReglas";
@@ -83,6 +84,10 @@ function App() {
                     <Route
                         path="/circunscripciones"
                         element={<CircunscripcionesElegibilidad />}
+                    />
+                    <Route
+                        path="/gestion-preelectoral/mesa/:mesaId/apertura"
+                        element={<AperturaMesa />}
                     />
                 </Route>
             </Routes>
