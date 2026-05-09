@@ -17,6 +17,9 @@ import GestionExcusas from "./pages/gestion-preelectoral/GestionExcusas";
 import SorteoJurados from "./pages/gestion-preelectoral/SorteoJurados";
 import ControlAsistencia from "./pages/gestion-preelectoral/ControlAsistencia";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ParametrosBase from "./pages/configuracion-elecciones/ParametrosBase";
+import MetodoElectoralReglas from "./pages/configuracion-elecciones/MetodoElectoralReglas";
+import CircunscripcionesElegibilidad from "./pages/configuracion-elecciones/CircunscripcionesElegibilidad";
 
 const preelectoralRoutes = [
     { path: "/censo/gestion", element: <GestionCenso /> },
@@ -56,11 +59,31 @@ function App() {
                 <Route path="/transparencia" element={<Transparencia />} />
                 <Route element={<ProtectedRoute />}>
                     {preelectoralRoutes.map((route) => (
-                        <Route key={route.path} path={route.path} element={route.element} />
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={route.element}
+                        />
                     ))}
                     {legacyPreelectoralRoutes.map((route) => (
-                        <Route key={route.path} path={route.path} element={route.element} />
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={route.element}
+                        />
                     ))}
+                    <Route
+                        path="/parametros-base"
+                        element={<ParametrosBase />}
+                    />
+                    <Route
+                        path="/metodo-electoral"
+                        element={<MetodoElectoralReglas />}
+                    />
+                    <Route
+                        path="/circunscripciones"
+                        element={<CircunscripcionesElegibilidad />}
+                    />
                 </Route>
             </Routes>
         </BrowserRouter>
