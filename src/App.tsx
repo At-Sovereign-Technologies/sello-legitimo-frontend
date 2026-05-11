@@ -21,6 +21,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ParametrosBase from "./pages/configuracion-elecciones/ParametrosBase";
 import MetodoElectoralReglas from "./pages/configuracion-elecciones/MetodoElectoralReglas";
 import CircunscripcionesElegibilidad from "./pages/configuracion-elecciones/CircunscripcionesElegibilidad";
+import Auditoria from "./pages/auditoria/Auditoria";
+import ActaCicloVida from "./pages/auditoria/ActaCicloVida";
 
 const preelectoralRoutes = [
     { path: "/censo/gestion", element: <GestionCenso /> },
@@ -58,6 +60,8 @@ function App() {
                 <Route path="/resultados" element={<Resultados />} />
                 <Route path="/elecciones" element={<Elecciones />} />
                 <Route path="/transparencia" element={<Transparencia />} />
+                <Route path="/auditoria" element={<Auditoria />} />
+                    <Route path="/acta-ciclo-vida" element={<ActaCicloVida />} />
                 <Route element={<ProtectedRoute />}>
                     {preelectoralRoutes.map((route) => (
                         <Route
