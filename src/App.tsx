@@ -10,6 +10,9 @@ import Elecciones from "./pages/Elecciones";
 import Transparencia from "./pages/Transparencia";
 import MockLogin from "./pages/MockLogin";
 import Dashboard from "./pages/Dashboard";
+import GestionReglas from "./pages/GestionReglas";
+import BandejaAprobacion from "./pages/BandejaAprobacion";
+import EvaluacionAntifraude from "./pages/EvaluacionAntifraude";
 
 function App() {
     return (
@@ -32,6 +35,9 @@ function App() {
                 <Route path="/resultados" element={<Resultados />} />
                 <Route path="/elecciones" element={<Elecciones />} />
                 <Route path="/transparencia" element={<Transparencia />} />
+                <Route path="/gestion-reglas" element={<GestionReglas />} />
+                <Route path="/bandeja-aprobacion" element={<BandejaAprobacion />} />
+                <Route path="/evaluacion-antifraude" element={<EvaluacionAntifraude />} />
             </Routes>
         </BrowserRouter>
     );
