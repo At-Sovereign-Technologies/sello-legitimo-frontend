@@ -8,15 +8,22 @@ export default function NavBar() {
     const [showToast, setShowToast] = useState(false);
     const [isPreelectoralOpen, setIsPreelectoralOpen] = useState(false);
     const [isConfigOpen, setIsConfigOpen] = useState(false);
+    const [isTransparenciaOpen, setIsTransparenciaOpen] = useState(false);
     const preelectoralRef = useRef<HTMLDivElement | null>(null);
     const configRef = useRef<HTMLDivElement | null>(null);
+    const transparenciaRef = useRef<HTMLDivElement | null>(null);
 
     const navItems = [
         { label: "Consulta Ciudadana", path: "/consulta-ciudadano" },
         { label: "Resultados Electorales", path: "/resultados" },
         { label: "Elecciones Activas", path: "/elecciones" },
-        { label: "Transparencia Electoral", path: "/transparencia" },
         { label: "Portal Roles", path: "/mock-login" },
+    ];
+
+    const transparenciaItems = [
+        { label: "Página de Transparencia", path: "/transparencia" },
+        { label: "Registro de Auditoría", path: "/auditoria" },
+        { label: "Ciclo de Vida Acta E-14", path: "/acta-ciclo-vida" },
     ];
 
     const preelectoralItems = [
@@ -38,6 +45,9 @@ export default function NavBar() {
             }
             if (!configRef.current?.contains(event.target as Node)) {
                 setIsConfigOpen(false);
+            }
+            if (!transparenciaRef.current?.contains(event.target as Node)) {
+                setIsTransparenciaOpen(false);
             }
         }
 
@@ -71,6 +81,42 @@ export default function NavBar() {
                             {label}
                         </button>
                     ))}
+
+                    <div ref={transparenciaRef} className="relative">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setIsTransparenciaOpen((current) => !current)
+                            }
+                            className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1.5 text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
+                            aria-haspopup="menu"
+                            aria-expanded={isTransparenciaOpen}
+                        >
+                            Transparencia Electoral
+                            <ChevronDown
+                                size={14}
+                                className={`transition ${isTransparenciaOpen ? "rotate-180" : ""}`}
+                            />
+                        </button>
+
+                        {isTransparenciaOpen && (
+                            <div className="absolute left-0 top-full z-20 mt-2 w-56 rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+                                {transparenciaItems.map(({ label, path }) => (
+                                    <button
+                                        key={label}
+                                        type="button"
+                                        onClick={() => {
+                                            navigate(path);
+                                            setIsTransparenciaOpen(false);
+                                        }}
+                                        className="block w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
                     <div ref={preelectoralRef} className="relative">
                         <button
