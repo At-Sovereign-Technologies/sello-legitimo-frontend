@@ -1,11 +1,55 @@
 import { useState, useEffect } from "react"
-import { Clock, Loader2, AlertCircle, ShieldCheck } from "lucide-react"
-import { getTransparency } from "../api/transparency.api"
+import {
+    Clock,
+    Loader2,
+    AlertCircle,
+    ShieldCheck,
+    Info,
+    AlertTriangle,
+    AlertOctagon,
+    Siren,
+    Server,
+} from "lucide-react"
+import { getTransparency, fetchRealTimeAuditEvents } from "../api/transparency.api"
 import { getActiveElections } from "../api/elections.api"
-import type { TransparencyResponse, TransparencyRecord } from "../types/transparency"
+import type {
+    TransparencyResponse,
+    TransparencyRecord,
+    TransparencyAuditEvent,
+    TransparencySeverity,
+} from "../types/transparency"
 import type { Election } from "../types/elections"
 import NavBar from "../components/NavBar"
 import Footer from "../components/Footer"
+
+type MonitorTab = "HANDSHAKE" | "ESCRUTINIO" | "GENERAL"
+
+const handshakeEventTypes = ["HANDSHAKE_EMITTED", "SESSION_ACTIVATED"]
+const escrutinioEventTypes = ["QR_SCANNED", "CONCILIATION_ATTEMPT"]
+
+const severityStyles: Record<TransparencySeverity, string> = {
+    INFO: "bg-slate-100 text-slate-700",
+    LOW: "bg-sky-100 text-sky-700",
+    MEDIUM: "bg-amber-100 text-amber-800",
+    HIGH: "bg-orange-100 text-orange-800",
+    CRITICAL: "bg-red-100 text-red-700",
+}
+
+const severityIcon: Record<TransparencySeverity, typeof Info> = {
+    INFO: Info,
+    LOW: Info,
+    MEDIUM: AlertTriangle,
+    HIGH: AlertOctagon,
+    CRITICAL: Siren,
+}
+
+const renderDetailValue = (value: unknown): string => {
+    if (value === null || value === undefined) return "-"
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        return String(value)
+    }
+    return JSON.stringify(value)
+}
 
 function RecordTimeline({ records }: { records: TransparencyRecord[] }) {
     return (
@@ -40,6 +84,18 @@ export default function Transparencia() {
     const [loadingRecords, setLoadingRecords] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [searched, setSearched] = useState(false)
+    const [auditEvents, setAuditEvents] = useState<TransparencyAuditEvent[]>([])
+    const [monitorTab, setMonitorTab] = useState<MonitorTab>("GENERAL")
+    const [monitorSeverityFilter, setMonitorSeverityFilter] = useState<"ALL" | TransparencySeverity>("ALL")
+    const [loadingAuditMonitor, setLoadingAuditMonitor] = useState(false)
+    const [auditMonitorError, setAuditMonitorError] = useState<string | null>(null)
+    const [auditUsingMock, setAuditUsingMock] = useState(false)
+    const USE_MOCK =
+        typeof import.meta.env.VITE_USE_MOCK_TRANSPARENCY === "string" &&
+        import.meta.env.VITE_USE_MOCK_TRANSPARENCY === "true"
+    const SHOW_MOCK_BADGE =
+        typeof import.meta.env.VITE_SHOW_MOCK_BADGE === "string" &&
+        import.meta.env.VITE_SHOW_MOCK_BADGE === "true"
 
     useEffect(() => {
         const fetchElections = async () => {
@@ -55,6 +111,42 @@ export default function Transparencia() {
         }
         fetchElections()
     }, [])
+
+    useEffect(() => {
+        const fetchAuditMonitor = async () => {
+            setLoadingAuditMonitor(true)
+            setAuditMonitorError(null)
+            setAuditUsingMock(false)
+
+            try {
+                const data = await fetchRealTimeAuditEvents({
+                    severity: monitorSeverityFilter === "ALL" ? undefined : monitorSeverityFilter,
+                })
+                setAuditEvents(data)
+            } catch {
+                if (USE_MOCK) {
+                    // Provide a realistic-looking mock event (no PII) for UI testing
+                    setAuditMonitorError(null)
+                    setAuditEvents([
+                        {
+                            timestamp: new Date().toISOString(),
+                            originComponent: "COMPUTE_ENGINE",
+                            eventType: "HANDSHAKE_EMITTED",
+                            severity: "INFO",
+                            details: { nodeId: "node-01", sessionId: "sess-abc123" },
+                        },
+                    ])
+                    setAuditUsingMock(true)
+                } else {
+                    setAuditMonitorError("No se pudieron cargar los eventos distribuidos de auditoría.")
+                }
+            } finally {
+                setLoadingAuditMonitor(false)
+            }
+        }
+
+        fetchAuditMonitor()
+    }, [monitorSeverityFilter])
 
     const fetchRecords = async () => {
         if (selectedId === null) return
@@ -87,6 +179,18 @@ export default function Transparencia() {
         : []
 
     const selectedElection = elections.find((e) => e.id === selectedId)
+
+    const monitorEvents = auditEvents.filter((event) => {
+        if (monitorTab === "HANDSHAKE") {
+            return handshakeEventTypes.includes(event.eventType)
+        }
+
+        if (monitorTab === "ESCRUTINIO") {
+            return escrutinioEventTypes.includes(event.eventType)
+        }
+
+        return true
+    })
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
@@ -221,6 +325,166 @@ export default function Transparencia() {
                             </p>
                         </div>
                     )}
+
+                    {/* MONITOR CENTRAL DE AUDITORIA */}
+                    <section className="bg-white rounded-2xl border shadow-sm p-6 mt-8">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900">Monitor Central de Auditoría</h3>
+                                <p className="text-sm text-gray-500">
+                                    Trazabilidad distribuida en tiempo real con enfoque Zero-Identity.
+                                </p>
+                            </div>
+
+                            {auditUsingMock && SHOW_MOCK_BADGE && (
+                                <div className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-100 px-3 py-1 rounded-md">
+                                    Mostrando datos de ejemplo (mock)
+                                </div>
+                            )}
+
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs text-gray-500">Severidad</label>
+                                <select
+                                    value={monitorSeverityFilter}
+                                    onChange={(e) =>
+                                        setMonitorSeverityFilter(e.target.value as "ALL" | TransparencySeverity)
+                                    }
+                                    className="border rounded-lg px-3 py-2 bg-white text-sm text-gray-700 outline-none cursor-pointer"
+                                >
+                                    <option value="ALL">Todas</option>
+                                    <option value="INFO">INFO</option>
+                                    <option value="LOW">LOW</option>
+                                    <option value="MEDIUM">MEDIUM</option>
+                                    <option value="HIGH">HIGH</option>
+                                    <option value="CRITICAL">CRITICAL</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            <button
+                                type="button"
+                                onClick={() => setMonitorTab("HANDSHAKE")}
+                                className={`px-3 py-2 rounded-lg text-sm font-semibold border transition ${
+                                    monitorTab === "HANDSHAKE"
+                                        ? "bg-red-500 text-white border-red-500"
+                                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                                }`}
+                            >
+                                Handshake Electoral
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setMonitorTab("ESCRUTINIO")}
+                                className={`px-3 py-2 rounded-lg text-sm font-semibold border transition ${
+                                    monitorTab === "ESCRUTINIO"
+                                        ? "bg-red-500 text-white border-red-500"
+                                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                                }`}
+                            >
+                                Escrutinio (Doble Verdad)
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setMonitorTab("GENERAL")}
+                                className={`px-3 py-2 rounded-lg text-sm font-semibold border transition ${
+                                    monitorTab === "GENERAL"
+                                        ? "bg-red-500 text-white border-red-500"
+                                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                                }`}
+                            >
+                                Registro General
+                            </button>
+                        </div>
+
+                        {loadingAuditMonitor && (
+                            <div className="flex items-center justify-center py-10 text-gray-500 gap-2">
+                                <Loader2 size={18} className="animate-spin" />
+                                Cargando eventos de auditoría distribuida...
+                            </div>
+                        )}
+
+                        {auditMonitorError && !loadingAuditMonitor && (
+                            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                                {auditMonitorError}
+                            </div>
+                        )}
+
+                        {!loadingAuditMonitor && !auditMonitorError && monitorEvents.length === 0 && (
+                            <div className="rounded-xl border border-gray-200 bg-gray-50 p-8 text-center text-sm text-gray-500">
+                                No se encontraron eventos para este filtro.
+                            </div>
+                        )}
+
+                        {!loadingAuditMonitor && !auditMonitorError && monitorEvents.length > 0 && (
+                            <div className="overflow-x-auto rounded-xl border border-gray-100">
+                                <table className="w-full">
+                                    <thead className="bg-gray-50 text-xs text-gray-500">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left font-medium">Tiempo</th>
+                                            <th className="px-4 py-3 text-left font-medium">Componente</th>
+                                            <th className="px-4 py-3 text-left font-medium">Evento</th>
+                                            <th className="px-4 py-3 text-left font-medium">Severidad</th>
+                                            <th className="px-4 py-3 text-left font-medium">Detalles</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 text-sm">
+                                        {monitorEvents.map((event, index) => {
+                                            const SeverityIcon = severityIcon[event.severity]
+
+                                            return (
+                                                <tr key={`${event.timestamp}-${event.eventType}-${index}`}>
+                                                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                                                        {new Date(event.timestamp).toLocaleString("es-CO")}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-gray-700">
+                                                        <span className="inline-flex items-center gap-2">
+                                                            <Server size={14} className="text-gray-400" />
+                                                            {event.originComponent}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-gray-800 font-medium">
+                                                        {event.eventType}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span
+                                                            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${severityStyles[event.severity]}`}
+                                                        >
+                                                            <SeverityIcon size={13} />
+                                                            {event.severity}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <details className="group">
+                                                            <summary className="cursor-pointer text-xs text-red-600 font-semibold list-none">
+                                                                Ver metadata
+                                                            </summary>
+                                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                                {Object.entries(event.details).length === 0 && (
+                                                                    <span className="text-xs text-gray-400">Sin metadata</span>
+                                                                )}
+                                                                {Object.entries(event.details).map(([key, value]) => (
+                                                                    <span
+                                                                        key={key}
+                                                                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 text-xs text-gray-700"
+                                                                    >
+                                                                        <span className="font-semibold">{key}:</span>
+                                                                        <span>{renderDetailValue(value)}</span>
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </details>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </section>
 
                 </div>
             </main>
