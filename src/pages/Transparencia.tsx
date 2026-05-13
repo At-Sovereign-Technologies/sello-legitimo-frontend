@@ -9,6 +9,8 @@ import {
     AlertOctagon,
     Siren,
     Server,
+    Flame,
+    AlertCircle as AlertIcon,
 } from "lucide-react"
 import { getTransparency, fetchRealTimeAuditEvents } from "../api/transparency.api"
 import { getActiveElections } from "../api/elections.api"
@@ -41,6 +43,37 @@ const severityIcon: Record<TransparencySeverity, typeof Info> = {
     MEDIUM: AlertTriangle,
     HIGH: AlertOctagon,
     CRITICAL: Siren,
+}
+
+const getSeverityFromRiskScore = (riskScore: number | null | undefined): TransparencySeverity => {
+    const score = riskScore ?? 0
+
+    if (score >= 80) return "CRITICAL"
+    if (score >= 60) return "HIGH"
+    if (score >= 30) return "MEDIUM"
+    if (score >= 10) return "LOW"
+    return "INFO"
+}
+
+const getRiskScoreStyles = (riskScore: number | null | undefined): { badge: string; icon: typeof Info | null } => {
+    const score = riskScore ?? 0
+    
+    if (score >= 80) {
+        return {
+            badge: "bg-red-100 text-red-800 border border-red-500",
+            icon: Flame,
+        }
+    } else if (score >= 30) {
+        return {
+            badge: "bg-orange-100 text-orange-800 border border-orange-300",
+            icon: AlertIcon,
+        }
+    } else {
+        return {
+            badge: "bg-slate-100 text-slate-600 border border-slate-300",
+            icon: null,
+        }
+    }
 }
 
 const renderDetailValue = (value: unknown): string => {
@@ -89,13 +122,6 @@ export default function Transparencia() {
     const [monitorSeverityFilter, setMonitorSeverityFilter] = useState<"ALL" | TransparencySeverity>("ALL")
     const [loadingAuditMonitor, setLoadingAuditMonitor] = useState(false)
     const [auditMonitorError, setAuditMonitorError] = useState<string | null>(null)
-    const [auditUsingMock, setAuditUsingMock] = useState(false)
-    const USE_MOCK =
-        typeof import.meta.env.VITE_USE_MOCK_TRANSPARENCY === "string" &&
-        import.meta.env.VITE_USE_MOCK_TRANSPARENCY === "true"
-    const SHOW_MOCK_BADGE =
-        typeof import.meta.env.VITE_SHOW_MOCK_BADGE === "string" &&
-        import.meta.env.VITE_SHOW_MOCK_BADGE === "true"
 
     useEffect(() => {
         const fetchElections = async () => {
@@ -114,39 +140,30 @@ export default function Transparencia() {
 
     useEffect(() => {
         const fetchAuditMonitor = async () => {
+            if (selectedId === null) {
+                setAuditEvents([])
+                return
+            }
+
             setLoadingAuditMonitor(true)
             setAuditMonitorError(null)
-            setAuditUsingMock(false)
 
             try {
                 const data = await fetchRealTimeAuditEvents({
-                    severity: monitorSeverityFilter === "ALL" ? undefined : monitorSeverityFilter,
+                    electionId: selectedId,
+                    page: 0,
+                    size: 100,
                 })
                 setAuditEvents(data)
             } catch {
-                if (USE_MOCK) {
-                    // Provide a realistic-looking mock event (no PII) for UI testing
-                    setAuditMonitorError(null)
-                    setAuditEvents([
-                        {
-                            timestamp: new Date().toISOString(),
-                            originComponent: "COMPUTE_ENGINE",
-                            eventType: "HANDSHAKE_EMITTED",
-                            severity: "INFO",
-                            details: { nodeId: "node-01", sessionId: "sess-abc123" },
-                        },
-                    ])
-                    setAuditUsingMock(true)
-                } else {
-                    setAuditMonitorError("No se pudieron cargar los eventos distribuidos de auditoría.")
-                }
+                setAuditMonitorError("No se pudieron cargar los eventos distribuidos de auditoría.")
             } finally {
                 setLoadingAuditMonitor(false)
             }
         }
 
         fetchAuditMonitor()
-    }, [monitorSeverityFilter])
+    }, [selectedId])
 
     const fetchRecords = async () => {
         if (selectedId === null) return
@@ -181,6 +198,12 @@ export default function Transparencia() {
     const selectedElection = elections.find((e) => e.id === selectedId)
 
     const monitorEvents = auditEvents.filter((event) => {
+        const eventSeverity = getSeverityFromRiskScore(event.riskScore)
+
+        if (monitorSeverityFilter !== "ALL" && eventSeverity !== monitorSeverityFilter) {
+            return false
+        }
+
         if (monitorTab === "HANDSHAKE") {
             return handshakeEventTypes.includes(event.eventType)
         }
@@ -190,6 +213,13 @@ export default function Transparencia() {
         }
 
         return true
+    })
+
+    // Sort by risk score (descending), treating undefined as 0
+    const sortedMonitorEvents = [...monitorEvents].sort((a, b) => {
+        const scoreA = a.riskScore ?? 0
+        const scoreB = b.riskScore ?? 0
+        return scoreB - scoreA
     })
 
     return (
@@ -336,12 +366,6 @@ export default function Transparencia() {
                                 </p>
                             </div>
 
-                            {auditUsingMock && SHOW_MOCK_BADGE && (
-                                <div className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-100 px-3 py-1 rounded-md">
-                                    Mostrando datos de ejemplo (mock)
-                                </div>
-                            )}
-
                             <div className="flex items-center gap-2">
                                 <label className="text-xs text-gray-500">Severidad</label>
                                 <select
@@ -426,13 +450,22 @@ export default function Transparencia() {
                                             <th className="px-4 py-3 text-left font-medium">Tiempo</th>
                                             <th className="px-4 py-3 text-left font-medium">Componente</th>
                                             <th className="px-4 py-3 text-left font-medium">Evento</th>
+                                            <th className="px-4 py-3 text-left font-medium">Score de Riesgo</th>
                                             <th className="px-4 py-3 text-left font-medium">Severidad</th>
                                             <th className="px-4 py-3 text-left font-medium">Detalles</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 text-sm">
-                                        {monitorEvents.map((event, index) => {
-                                            const SeverityIcon = severityIcon[event.severity]
+                                        {sortedMonitorEvents.map((event, index) => {
+                                            const eventSeverity = getSeverityFromRiskScore(event.riskScore)
+                                            const SeverityIcon = severityIcon[eventSeverity]
+                                            const riskScoreStyles = getRiskScoreStyles(event.riskScore)
+                                            const RiskIcon = riskScoreStyles.icon
+                                            const metadataEntries = event.details
+                                                ? Object.entries(event.details)
+                                                : event.description
+                                                    ? [["description", event.description] as const]
+                                                    : []
 
                                             return (
                                                 <tr key={`${event.timestamp}-${event.eventType}-${index}`}>
@@ -442,18 +475,34 @@ export default function Transparencia() {
                                                     <td className="px-4 py-3 text-gray-700">
                                                         <span className="inline-flex items-center gap-2">
                                                             <Server size={14} className="text-gray-400" />
-                                                            {event.originComponent}
+                                                            {event.originComponent ?? "TRANSPARENCY_SERVICE"}
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 text-gray-800 font-medium">
                                                         {event.eventType}
                                                     </td>
                                                     <td className="px-4 py-3">
+                                                        <div className="flex flex-col gap-1">
+                                                            <span
+                                                                className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold w-fit ${riskScoreStyles.badge}`}
+                                                                title={`Versión del algoritmo: ${event.algorithmVersion ?? "no especificada"}`}
+                                                            >
+                                                                {RiskIcon && <RiskIcon size={13} />}
+                                                                {event.riskScore ?? 0}
+                                                            </span>
+                                                            {event.algorithmVersion && (
+                                                                <span className="text-xs text-gray-400">
+                                                                    v{event.algorithmVersion}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
                                                         <span
-                                                            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${severityStyles[event.severity]}`}
+                                                            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${severityStyles[eventSeverity]}`}
                                                         >
                                                             <SeverityIcon size={13} />
-                                                            {event.severity}
+                                                            {eventSeverity}
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3">
@@ -462,10 +511,10 @@ export default function Transparencia() {
                                                                 Ver metadata
                                                             </summary>
                                                             <div className="mt-2 flex flex-wrap gap-2">
-                                                                {Object.entries(event.details).length === 0 && (
+                                                                {metadataEntries.length === 0 && (
                                                                     <span className="text-xs text-gray-400">Sin metadata</span>
                                                                 )}
-                                                                {Object.entries(event.details).map(([key, value]) => (
+                                                                {metadataEntries.map(([key, value]) => (
                                                                     <span
                                                                         key={key}
                                                                         className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100 text-xs text-gray-700"
