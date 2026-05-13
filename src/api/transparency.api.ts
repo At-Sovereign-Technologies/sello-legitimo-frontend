@@ -19,17 +19,24 @@ export const getTransparency = async (
 }
 
 export const fetchRealTimeAuditEvents = async (
-  filters?: TransparencyAuditEventFilters
+  filters: TransparencyAuditEventFilters
 ): Promise<TransparencyAuditEvent[]> => {
-  const response = await apiClient.get<TransparencyAuditEvent[]>(
+  const response = await apiClient.get<TransparencyResponse>(
     "/api/v1/transparency",
     {
       params: {
-        eventType: filters?.eventType,
-        severity: filters?.severity,
+        electionId: filters.electionId,
+        page: filters.page ?? 0,
+        size: filters.size ?? 50,
       },
     }
   )
 
-  return response.data
+  const records = response.data.records ?? []
+
+  if (filters.eventType) {
+    return records.filter((record) => record.eventType === filters.eventType)
+  }
+
+  return records
 }
