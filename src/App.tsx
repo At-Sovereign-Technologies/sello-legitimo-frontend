@@ -10,6 +10,8 @@ import Elecciones from "./pages/Elecciones";
 import Transparencia from "./pages/Transparencia";
 import MockLogin from "./pages/MockLogin";
 import Dashboard from "./pages/Dashboard";
+import ParticipacionEnVivoPage from "./pages/publicacion/ParticipacionEnVivoPage";
+import ResultadosParcialPage from "./pages/publicacion/ResultadosParcialPage";
 import GestionCenso from "./pages/gestion-preelectoral/GestionCenso";
 import GestionCandidaturas from "./pages/gestion-preelectoral/GestionCandidaturas";
 import Callback from "./pages/gestion-preelectoral/Callback";
@@ -61,7 +63,7 @@ function App() {
                 <Route path="/elecciones" element={<Elecciones />} />
                 <Route path="/transparencia" element={<Transparencia />} />
                 <Route path="/auditoria" element={<Auditoria />} />
-                    <Route path="/acta-ciclo-vida" element={<ActaCicloVida />} />
+                <Route path="/acta-ciclo-vida" element={<ActaCicloVida />} />
                 <Route element={<ProtectedRoute />}>
                     {preelectoralRoutes.map((route) => (
                         <Route
@@ -94,8 +96,10 @@ function App() {
                         element={<AperturaMesa />}
                     />
                 </Route>
-            </Routes>
-        </BrowserRouter>
+                <Route path="/publicacion/participacion" element={<ParticipacionEnVivoPage />} />
+                <Route path="/publicacion/resultados" element={<ResultadosParcialPage />} />
+            </Routes >
+        </BrowserRouter >
     );
 }
 

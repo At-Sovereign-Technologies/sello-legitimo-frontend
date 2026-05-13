@@ -24,3 +24,4 @@ npm run build
 
 - Landing y flujo de login implementados en UI.
 - El frontend espera endpoints de autenticación bajo /api/v1/auth.
+ 
