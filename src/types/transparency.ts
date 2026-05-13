@@ -17,6 +17,8 @@ export interface TransparencyAuditEvent {
   eventType: string
   severity: TransparencySeverity
   details: Record<string, unknown>
+  riskScore?: number
+  algorithmVersion?: string
 }
 
 export interface TransparencyAuditEventFilters {

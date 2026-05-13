@@ -9,6 +9,8 @@ import {
     AlertOctagon,
     Siren,
     Server,
+    Flame,
+    AlertCircle as AlertIcon,
 } from "lucide-react"
 import { getTransparency, fetchRealTimeAuditEvents } from "../api/transparency.api"
 import { getActiveElections } from "../api/elections.api"
@@ -41,6 +43,27 @@ const severityIcon: Record<TransparencySeverity, typeof Info> = {
     MEDIUM: AlertTriangle,
     HIGH: AlertOctagon,
     CRITICAL: Siren,
+}
+
+const getRiskScoreStyles = (riskScore: number | undefined): { badge: string; icon: typeof Info | null } => {
+    const score = riskScore ?? 0
+    
+    if (score >= 80) {
+        return {
+            badge: "bg-red-100 text-red-800 border border-red-500",
+            icon: Flame,
+        }
+    } else if (score >= 30) {
+        return {
+            badge: "bg-orange-100 text-orange-800 border border-orange-300",
+            icon: AlertIcon,
+        }
+    } else {
+        return {
+            badge: "bg-slate-100 text-slate-600 border border-slate-300",
+            icon: null,
+        }
+    }
 }
 
 const renderDetailValue = (value: unknown): string => {
@@ -190,6 +213,13 @@ export default function Transparencia() {
         }
 
         return true
+    })
+
+    // Sort by risk score (descending), treating undefined as 0
+    const sortedMonitorEvents = [...monitorEvents].sort((a, b) => {
+        const scoreA = a.riskScore ?? 0
+        const scoreB = b.riskScore ?? 0
+        return scoreB - scoreA
     })
 
     return (
@@ -426,13 +456,16 @@ export default function Transparencia() {
                                             <th className="px-4 py-3 text-left font-medium">Tiempo</th>
                                             <th className="px-4 py-3 text-left font-medium">Componente</th>
                                             <th className="px-4 py-3 text-left font-medium">Evento</th>
+                                            <th className="px-4 py-3 text-left font-medium">Score de Riesgo</th>
                                             <th className="px-4 py-3 text-left font-medium">Severidad</th>
                                             <th className="px-4 py-3 text-left font-medium">Detalles</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100 text-sm">
-                                        {monitorEvents.map((event, index) => {
+                                        {sortedMonitorEvents.map((event, index) => {
                                             const SeverityIcon = severityIcon[event.severity]
+                                            const riskScoreStyles = getRiskScoreStyles(event.riskScore)
+                                            const RiskIcon = riskScoreStyles.icon
 
                                             return (
                                                 <tr key={`${event.timestamp}-${event.eventType}-${index}`}>
@@ -447,6 +480,22 @@ export default function Transparencia() {
                                                     </td>
                                                     <td className="px-4 py-3 text-gray-800 font-medium">
                                                         {event.eventType}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex flex-col gap-1">
+                                                            <span
+                                                                className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold w-fit ${riskScoreStyles.badge}`}
+                                                                title={`Versión del algoritmo: ${event.algorithmVersion ?? "no especificada"}`}
+                                                            >
+                                                                {RiskIcon && <RiskIcon size={13} />}
+                                                                {event.riskScore ?? 0}
+                                                            </span>
+                                                            {event.algorithmVersion && (
+                                                                <span className="text-xs text-gray-400">
+                                                                    v{event.algorithmVersion}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <span
