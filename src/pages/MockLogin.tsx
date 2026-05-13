@@ -31,6 +31,11 @@ const roles: { label: string; value: MockRole; description: string }[] = [
         value: "FISCALIA",
         description: "Mapa de incidentes y fraude",
     },
+    {
+        label: "Admin RNEC",
+        value: "ADMIN_RNEC",
+        description: "Gestión de reglas antifraude",
+    },
 ];
 
 const MockLogin: React.FC = () => {

@@ -1,8 +1,8 @@
 import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
+    createContext,
+    useContext,
+    useState,
+    useEffect,
 } from "react";
 
 import type { ReactNode } from "react";
@@ -13,6 +13,7 @@ export type MockRole =
     | "AUDITOR"
     | "DELEGADO_CNE"
     | "FISCALIA"
+    | "ADMIN_RNEC"
     | null;
 
 interface MockAuthContextType {

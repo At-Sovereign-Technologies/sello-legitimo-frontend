@@ -22,6 +22,11 @@ const Dashboard: React.FC = () => {
             navigate("/mock-login");
             return;
         }
+        // El rol ADMIN_RNEC tiene su propia pagina de gestion
+        if (role === "ADMIN_RNEC") {
+            navigate("/gestion-reglas");
+            return;
+        }
 
         const fetchData = async () => {
             try {
