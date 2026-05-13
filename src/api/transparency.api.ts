@@ -21,11 +21,8 @@ export const getTransparency = async (
 export const fetchRealTimeAuditEvents = async (
   filters?: TransparencyAuditEventFilters
 ): Promise<TransparencyAuditEvent[]> => {
-  // Use POST since backend expects ingestion via POST on this path.
-  // Send filters in the request body and preserve query params for compatibility.
-  const response = await apiClient.post<TransparencyAuditEvent[]>(
-    "/api/v1/transparency/events",
-    { ...(filters ?? {}) },
+  const response = await apiClient.get<TransparencyAuditEvent[]>(
+    "/api/v1/transparency",
     {
       params: {
         eventType: filters?.eventType,
