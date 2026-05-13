@@ -10,6 +10,9 @@ import Elecciones from "./pages/Elecciones";
 import Transparencia from "./pages/Transparencia";
 import MockLogin from "./pages/MockLogin";
 import Dashboard from "./pages/Dashboard";
+import ParticipacionEnVivoPage from "./pages/publicacion/ParticipacionEnVivoPage";
+import ResultadosParcialPage from "./pages/publicacion/ResultadosParcialPage";
+<<<<<<< HEAD
 import GestionCenso from "./pages/gestion-preelectoral/GestionCenso";
 import GestionCandidaturas from "./pages/gestion-preelectoral/GestionCandidaturas";
 import Callback from "./pages/gestion-preelectoral/Callback";
@@ -37,6 +40,11 @@ const legacyPreelectoralRoutes = [
     { path: "/sorteo-jurados", element: <SorteoJurados /> },
     { path: "/control-asistencia", element: <ControlAsistencia /> },
 ];
+=======
+import GestionReglas from "./pages/GestionReglas";
+import BandejaAprobacion from "./pages/BandejaAprobacion";
+import EvaluacionAntifraude from "./pages/EvaluacionAntifraude";
+>>>>>>> 4e16c6e (- Crear tipos TypeScript del dominio (FraudRule, RuleType, parámetros dinámicos))
 
 function App() {
     return (
@@ -60,6 +68,7 @@ function App() {
                 <Route path="/resultados" element={<Resultados />} />
                 <Route path="/elecciones" element={<Elecciones />} />
                 <Route path="/transparencia" element={<Transparencia />} />
+<<<<<<< HEAD
                 <Route path="/auditoria" element={<Auditoria />} />
                     <Route path="/acta-ciclo-vida" element={<ActaCicloVida />} />
                 <Route element={<ProtectedRoute />}>
@@ -94,8 +103,15 @@ function App() {
                         element={<AperturaMesa />}
                     />
                 </Route>
-            </Routes>
-        </BrowserRouter>
+=======
+                <Route path="/gestion-reglas" element={<GestionReglas />} />
+                <Route path="/bandeja-aprobacion" element={<BandejaAprobacion />} />
+                <Route path="/evaluacion-antifraude" element={<EvaluacionAntifraude />} />
+>>>>>>> 4e16c6e (- Crear tipos TypeScript del dominio (FraudRule, RuleType, parámetros dinámicos))
+                <Route path="/publicacion/participacion" element={<ParticipacionEnVivoPage />} />
+                <Route path="/publicacion/resultados" element={<ResultadosParcialPage />} />
+            </Routes >
+        </BrowserRouter >
     );
 }
 

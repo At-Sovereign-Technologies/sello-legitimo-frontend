@@ -17,6 +17,11 @@ export default function NavBar() {
         { label: "Consulta Ciudadana", path: "/consulta-ciudadano" },
         { label: "Resultados Electorales", path: "/resultados" },
         { label: "Elecciones Activas", path: "/elecciones" },
+<<<<<<< HEAD
+=======
+        { label: "Transparencia Electoral", path: "/transparencia" },
+        { label: "Motor Antifraude", path: "/gestion-reglas" },
+>>>>>>> 4e16c6e (- Crear tipos TypeScript del dominio (FraudRule, RuleType, parámetros dinámicos))
         { label: "Portal Roles", path: "/mock-login" },
     ];
 
