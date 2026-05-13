@@ -1,178 +1,184 @@
 import { useState } from "react";
-import { Lock, User, ArrowRight, Loader2 } from "lucide-react";
-import { requestOtp, verifyOtp } from "../api/auth.api";
+import { Lock, User, ArrowRight, Loader2, KeyRound, ShieldAlert } from "lucide-react";
+import { login, verifyMFA } from "../api/auth.api";
 import { storeAuthToken } from "../services/authService";
 import Header from "../components/LoginHeader";
 import Footer from "../components/Footer";
 
-type Step = "cedula" | "otp";
-
-const resolveApiError = (err: unknown, fallback: string): string => {
-    if (typeof err === "object" && err !== null) {
-        const maybeResponse = (
-            err as { response?: { data?: { message?: unknown } } }
-        ).response;
-        const message = maybeResponse?.data?.message;
-        if (typeof message === "string" && message.trim().length > 0) {
-            return message;
-        }
-    }
-    return fallback;
-};
+type Step = "credentials" | "mfa_challenge";
 
 export default function Login() {
-    const [step, setStep] = useState<Step>("cedula");
-    const [cedula, setCedula] = useState("");
-    const [otp, setOtp] = useState("");
+    const [step, setStep] = useState<Step>("credentials");
+    const [documento, setDocumento] = useState("");
+    const [password, setPassword] = useState("");
+    const [otpCode, setOtpCode] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [mfaMessage, setMfaMessage] = useState<string | null>(null);
 
-    // Step 1 — POST /login → show OTP field
-    const handleRequestOtp = async () => {
-        if (!cedula.trim()) {
-            setError("Ingrese su número de cédula.");
+    const handleLogin = async () => {
+        const doc = documento.trim();
+        if (!doc) {
+            setError("Ingrese su número de documento.");
+            return;
+        }
+        if (!password.trim()) {
+            setError("Ingrese su contraseña.");
             return;
         }
         setLoading(true);
         setError(null);
         try {
-            await requestOtp(cedula);
-            setStep("otp");
-        } catch (err: unknown) {
-            setError(resolveApiError(err, "Error al enviar OTP."));
+            const result = await login(doc, password);
+            const status = result.status as string;
+
+            if (status === "AUTHENTICATED") {
+                const token = result.token as string;
+                storeAuthToken(token, documento);
+                window.location.href = "/perfil";
+            } else if (status === "MFA_SETUP_REQUIRED") {
+                const tempToken = result.token as string;
+                storeAuthToken(tempToken, documento);
+                window.location.href = "/perfil";
+            } else if (status === "MFA_CHALLENGE") {
+                const tempToken = result.token as string;
+                storeAuthToken(tempToken, documento);
+                setMfaMessage((result.message as string) || "Verifique su código MFA");
+                setStep("mfa_challenge");
+            } else {
+                setError((result.message as string) || "Error al iniciar sesión");
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Error al iniciar sesión");
         } finally {
             setLoading(false);
         }
     };
 
-    // Step 2 — POST /verify → store JWT
-    const handleVerify = async () => {
-        if (!otp.trim()) {
-            setError("Ingrese el código OTP.");
+    const handleMFAVerify = async () => {
+        if (!otpCode.match(/^\d{6}$/)) {
+            setError("Ingrese un código de 6 dígitos");
             return;
         }
         setLoading(true);
         setError(null);
         try {
-            const token = await verifyOtp(cedula, otp);
-            storeAuthToken(token, cedula);
-            window.location.href = "/menu";
-        } catch (err: unknown) {
-            setError(resolveApiError(err, "OTP inválido."));
+            const result = await verifyMFA(otpCode);
+            const token = result.token as string;
+            storeAuthToken(token, documento);
+            window.location.href = "/perfil";
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Código inválido");
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleContinue = () => {
-        if (step === "cedula") handleRequestOtp();
-        else handleVerify();
     };
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
             <Header />
 
-            {/* MAIN */}
             <main className="flex-1 px-10 py-10">
                 <div className="grid md:grid-cols-2 gap-10 max-w-7xl mx-auto">
-                    {/* LEFT */}
                     <div>
                         <h2 className="text-3xl font-bold mb-2">
-                            Autenticación Remota
+                            Inicio de sesión
                         </h2>
                         <p className="text-gray-600 mb-6">
-                            Inicie sesión para ejercer su derecho al voto de
-                            forma segura.
+                            Acceda con su documento y contraseña.
                         </p>
 
-                        {/* Error banner */}
                         {error && (
                             <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
                                 {error}
                             </div>
                         )}
 
-                        {/* CÉDULA INPUT — always visible */}
-                        <div className="mb-4">
-                            <label className="text-xs text-gray-500">
-                                NÚMERO DE CÉDULA
-                            </label>
-                            <div className="flex items-center border rounded-lg px-3 py-3 mt-1 bg-white">
-                                <User
-                                    size={16}
-                                    className="text-gray-400 mr-2"
-                                />
-                                <input
-                                    value={cedula}
-                                    onChange={(e) => setCedula(e.target.value)}
-                                    disabled={step === "otp"}
-                                    className="w-full outline-none disabled:text-gray-400"
-                                    placeholder="Ingrese su número de identificación"
-                                />
-                            </div>
-                        </div>
+                        {step === "credentials" && (
+                            <>
+                                <div className="mb-4">
+                                    <label className="text-xs text-gray-500">
+                                        NÚMERO DE DOCUMENTO
+                                    </label>
+                                    <div className="flex items-center border rounded-lg px-3 py-3 mt-1 bg-white">
+                                        <User size={16} className="text-gray-400 mr-2" />
+                                        <input
+                                            value={documento}
+                                            onChange={(e) => setDocumento(e.target.value)}
+                                            className="w-full outline-none"
+                                            placeholder="Ingrese su número de identificación"
+                                        />
+                                    </div>
+                                </div>
 
-                        {/* OTP INPUT — only visible after step 1 */}
-                        {step === "otp" && (
-                            <div className="border rounded-xl p-4 bg-white mb-4">
-                                <div className="flex items-center gap-2 text-red-500 text-sm font-semibold mb-3">
-                                    <Lock size={16} />
-                                    DOBLE FACTOR DE AUTENTICACIÓN (MFA)
+                                <div className="mb-6">
+                                    <label className="text-xs text-gray-500">
+                                        CONTRASEÑA
+                                    </label>
+                                    <div className="flex items-center border rounded-lg px-3 py-3 mt-1 bg-white">
+                                        <Lock size={16} className="text-gray-400 mr-2" />
+                                        <input
+                                            type="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full outline-none"
+                                            placeholder="Ingrese su contraseña"
+                                        />
+                                    </div>
                                 </div>
-                                <p className="text-xs text-gray-500 mb-2">
-                                    CÓDIGO OTP (ENVIADO A SU MÓVIL)
-                                </p>
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        value={otp}
-                                        onChange={(e) => setOtp(e.target.value)}
-                                        className="border rounded-lg px-4 py-2 w-32 text-center tracking-widest"
-                                        placeholder="000000"
-                                        maxLength={6}
-                                    />
-                                    {/* ✅ Reenviar re-runs step 1 */}
-                                    <button
-                                        onClick={handleRequestOtp}
-                                        disabled={loading}
-                                        className="text-red-500 text-sm disabled:opacity-50"
-                                    >
-                                        Reenviar
-                                    </button>
-                                </div>
-                            </div>
+
+                                <button
+                                    onClick={handleLogin}
+                                    disabled={loading}
+                                    className="w-full bg-red-500 text-white py-3 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-60"
+                                >
+                                    {loading ? (
+                                        <Loader2 size={18} className="animate-spin" />
+                                    ) : (
+                                        <>
+                                            INGRESAR <ArrowRight size={18} />
+                                        </>
+                                    )}
+                                </button>
+                            </>
                         )}
 
-                        {/* BIOMETRÍA */}
-                        <div className="border-2 border-dashed rounded-xl p-4 bg-white mb-6 flex justify-between items-center">
-                            <div>
-                                <p className="font-semibold text-sm">
-                                    Escanear Rostro
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                    Inicie validación con selfie
-                                </p>
+                        {step === "mfa_challenge" && (
+                            <div className="border rounded-xl p-4 bg-white mb-4">
+                                <div className="flex items-center gap-2 text-red-500 text-sm font-semibold mb-3">
+                                    <ShieldAlert size={16} />
+                                    AUTENTICACIÓN DE DOS FACTORES (MFA)
+                                </div>
+                                {mfaMessage && (
+                                    <p className="text-xs text-gray-500 mb-2">{mfaMessage}</p>
+                                )}
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center border rounded-lg px-3 py-2 bg-white">
+                                        <KeyRound size={16} className="text-gray-400 mr-2" />
+                                        <input
+                                            value={otpCode}
+                                            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                                            className="w-32 text-center tracking-widest outline-none"
+                                            placeholder="000000"
+                                            maxLength={6}
+                                        />
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleMFAVerify}
+                                    disabled={loading || otpCode.length !== 6}
+                                    className="mt-4 w-full bg-red-500 text-white py-2 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-60"
+                                >
+                                    {loading ? (
+                                        <Loader2 size={18} className="animate-spin" />
+                                    ) : (
+                                        "VERIFICAR CÓDIGO"
+                                    )}
+                                </button>
                             </div>
-                            <ArrowRight className="text-gray-400" />
-                        </div>
-
-                        {/* CONTINUAR — wired up */}
-                        <button
-                            onClick={handleContinue}
-                            disabled={loading}
-                            className="w-full bg-red-500 text-white py-3 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-60"
-                        >
-                            {loading ? (
-                                <Loader2 size={18} className="animate-spin" />
-                            ) : (
-                                <>
-                                    CONTINUAR <ArrowRight size={18} />
-                                </>
-                            )}
-                        </button>
+                        )}
                     </div>
 
-                    {/* RIGHT — unchanged */}
                     <div className="space-y-6">
                         <div className="bg-white p-6 rounded-xl border text-center">
                             <div className="w-40 h-40 mx-auto border-2 border-red-300 rounded-full flex items-center justify-center mb-4">

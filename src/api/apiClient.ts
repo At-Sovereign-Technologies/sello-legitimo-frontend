@@ -1,13 +1,16 @@
 import axios from "axios";
 
-// Empty base = same origin as the page (ngrok/Caddy or Vite + /api proxy on localhost).
-// Default to localhost:8084 when no VITE_API_URL is provided so local backend
-// (development) targets the expected port. Honor VITE_API_URL when present.
+const trim = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+// Orden de resolución:
+//   1. VITE_API_URL   — sobreescritura explícita del backend
+//   2. VITE_API_GATEWAY_URL — gateway de docker (puerto 8091)
+//   3. VITE_AUTH_SERVICE_URL — sobreescritura del servicio de auth
+//   4. "" (vacía)     — mismo origen (works via docker gateway or Vite proxy)
 const apiBase =
-    typeof import.meta.env.VITE_API_URL === "string" &&
-    import.meta.env.VITE_API_URL.trim() !== ""
-        ? import.meta.env.VITE_API_URL
-        : "http://localhost:8084";
+    trim(import.meta.env.VITE_API_URL) ||
+    trim(import.meta.env.VITE_API_GATEWAY_URL) ||
+    trim(import.meta.env.VITE_AUTH_SERVICE_URL) ||
+    "";
 
 const apiClient = axios.create({
     baseURL: apiBase,

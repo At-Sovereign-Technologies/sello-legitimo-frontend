@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { LogOut, ChevronDown } from "lucide-react"
+import { LogOut, ChevronDown, User } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { getDisplayInitial, getDisplayUsername, logout } from "../services/authService"
 
@@ -53,8 +53,17 @@ export default function UserMenu() {
 
           <button
             type="button"
+            onClick={() => { navigate("/perfil"); setIsOpen(false); }}
+            className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100"
+          >
+            <User size={16} />
+            Mi Perfil
+          </button>
+
+          <button
+            type="button"
             onClick={handleLogout}
-            className="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
+            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
           >
             <LogOut size={16} />
             Cerrar sesión
