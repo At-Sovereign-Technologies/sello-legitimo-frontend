@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import {
   BarChart3, Loader2, AlertCircle,
   History, GitCompare, TrendingUp, ChevronDown, ChevronUp, Minus,
+  Scale, AlertOctagon, RotateCcw, Users,
 } from "lucide-react"
 import { getElectionResults, getResultsHistory, getResultsComparison, getResultsTrends } from "../api/results.api"
 import { getActiveElections } from "../api/elections.api"
@@ -12,7 +13,7 @@ import Footer from "../components/Footer"
 import type { CandidateResult } from "../types/results"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "resultados" | "historico" | "comparacion" | "tendencias"
+type Tab = "resultados" | "historico" | "comparacion" | "tendencias" | "escrutinio"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const ELECTION_TYPES: Record<string, string> = {
@@ -90,7 +91,7 @@ function Spinner() {
   )
 }
 
-// ─── TAB: RESULTADOS (original) ───────────────────────────────────────────────
+// ─── TAB: RESULTADOS ──────────────────────────────────────────────────────────
 function TabResultados({ elections }: { elections: Election[] }) {
   const [selectedId, setSelectedId]   = useState<number | null>(elections[0]?.id ?? null)
   const [results, setResults]         = useState<ElectionResults | null>(null)
@@ -114,7 +115,6 @@ function TabResultados({ elections }: { elections: Election[] }) {
 
   return (
     <div className="space-y-6">
-      {/* Selector */}
       <div className="bg-white rounded-2xl border p-6">
         <label className="text-xs text-gray-500">ELECCIÓN</label>
         <select
@@ -196,7 +196,6 @@ function TabHistorico() {
 
   return (
     <div className="space-y-6">
-      {/* Filtros */}
       <div className="bg-white rounded-2xl border p-5 flex flex-wrap gap-3 items-end">
         <div className="flex flex-col gap-1 flex-1 min-w-[140px]">
           <label className="text-xs text-gray-400 uppercase tracking-wide">Tipo</label>
@@ -231,7 +230,6 @@ function TabHistorico() {
         </button>
       </div>
 
-      {/* Stats */}
       {data && !loading && (
         <div className="grid grid-cols-2 gap-4">
           <StatCard label="Total elecciones" value={data.totalElections} />
@@ -242,7 +240,6 @@ function TabHistorico() {
       {error  && <ErrorBox msg={error} onRetry={fetch} />}
       {loading && <Spinner />}
 
-      {/* Tabla */}
       {data && !loading && (
         <div className="bg-white rounded-2xl border overflow-hidden">
           <div className="overflow-x-auto">
@@ -303,7 +300,6 @@ function TabComparacion({ elections }: { elections: Election[] }) {
 
   return (
     <div className="space-y-6">
-      {/* Selector de elecciones */}
       <div className="bg-white rounded-2xl border p-5">
         <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">Selecciona elecciones a comparar (mín. 2)</p>
         <div className="flex flex-wrap gap-2 mb-4">
@@ -354,7 +350,6 @@ function TabComparacion({ elections }: { elections: Election[] }) {
                       {c.percentages[j]?.toFixed(1)}%
                     </p>
                     <p className="text-xs text-gray-500">{c.votes[j]?.toLocaleString()} votos</p>
-                    {/* mini bar */}
                     <div className="mt-2 w-full bg-gray-100 rounded-full h-2">
                       <div
                         className="h-2 rounded-full transition-all duration-700"
@@ -396,7 +391,6 @@ function TabTendencias() {
 
       {data && !loading && (
         <>
-          {/* Participación global */}
           <div className="bg-white rounded-2xl border p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-900">Participación por elección</h3>
@@ -420,7 +414,6 @@ function TabTendencias() {
             </div>
           </div>
 
-          {/* Tendencias por candidato */}
           <div className="space-y-3">
             <h3 className="font-bold text-gray-800 px-1">Tendencia por candidato</h3>
             {data.candidateTrends.slice(0, 8).map(c => {
@@ -458,12 +451,242 @@ function TabTendencias() {
   )
 }
 
+// ─── TAB: ESCRUTINIO (US-01 / US-03 / US-04 / US-05) ─────────────────────────
+interface EscrutinioResultado {
+  metodo: "MAYORIA_SIMPLE" | "MAYORIA_ABSOLUTA" | "CIFRA_REPARTIDORA"
+  ganador: string
+  porcentaje: number
+  totales: Record<string, number>
+  requiereSegundaVuelta: boolean
+  repeticionEleccion: boolean
+  finalistasSegundaVuelta: string[]
+  semillaDesempate?: string
+  acta: {
+    votosValidos: number
+    votosEnBlanco: number
+    votosNoMarcados: number
+    votosNulos: number
+    totalVotos: number
+    eventos: string[]
+  }
+  curules?: Record<string, number>
+}
+
+function TabEscrutinio({ elections }: { elections: Election[] }) {
+  const [selectedId, setSelectedId] = useState<number | null>(elections[0]?.id ?? null)
+  const [data, setData]             = useState<EscrutinioResultado | null>(null)
+  const [loading, setLoading]       = useState(false)
+  const [error, setError]           = useState<string | null>(null)
+
+  const fetchEscrutinio = async () => {
+    if (selectedId === null) return
+    setLoading(true); setError(null); setData(null)
+    try {
+      const res = await fetch(`/api/election/result?electionId=${selectedId}`)
+      if (!res.ok) throw new Error("Sin datos")
+      setData(await res.json())
+    } catch {
+      setError("No se pudo obtener el escrutinio del motor electoral.")
+    } finally { setLoading(false) }
+  }
+
+  const metodoLabel: Record<string, string> = {
+    MAYORIA_SIMPLE:    "Mayoría Simple",
+    MAYORIA_ABSOLUTA:  "Mayoría Absoluta",
+    CIFRA_REPARTIDORA: "Cifra Repartidora (D'Hondt)",
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Selector de elección */}
+      <div className="bg-white rounded-2xl border p-6">
+        <label className="text-xs text-gray-500 uppercase tracking-wide">Elección</label>
+        <select
+          value={selectedId ?? ""}
+          onChange={e => { setSelectedId(Number(e.target.value)); setData(null); setError(null) }}
+          className="w-full border rounded-lg px-3 py-3 mt-1 bg-white text-sm text-gray-700 outline-none mb-4"
+        >
+          {elections.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+        </select>
+        <button
+          onClick={fetchEscrutinio}
+          disabled={loading || selectedId === null}
+          className="w-full bg-red-500 text-white py-3 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-60"
+        >
+          {loading ? <Loader2 size={18} className="animate-spin" /> : "Obtener Escrutinio"}
+        </button>
+      </div>
+
+      {error && <ErrorBox msg={error} onRetry={fetchEscrutinio} />}
+      {loading && <Spinner />}
+
+      {data && !loading && (
+        <>
+          {/* US-04: flag segunda vuelta */}
+          {data.requiereSegundaVuelta && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-3">
+              <AlertOctagon size={20} className="text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-amber-800 text-sm">Se requiere segunda vuelta</p>
+                <p className="text-xs text-amber-700 mt-1">
+                  Ningún candidato superó el umbral de mayoría absoluta.
+                  Finalistas: <strong>{data.finalistasSegundaVuelta.join(" vs ")}</strong>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* US-04: flag repetición de elección */}
+          {data.repeticionEleccion && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-start gap-3">
+              <RotateCcw size={20} className="text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-red-800 text-sm">Repetición de elección activada</p>
+                <p className="text-xs text-red-700 mt-1">
+                  El voto en blanco superó al candidato más votado según el artículo 258 de la Constitución.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* US-03: semilla de desempate SR-M6 */}
+          {data.semillaDesempate && (
+            <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4">
+              <p className="text-xs text-purple-700">
+                <strong>Empate detectado · Semilla SR-M6:</strong>{" "}
+                <code className="font-mono">{data.semillaDesempate}</code>
+              </p>
+            </div>
+          )}
+
+          {/* Método y ganador */}
+          <div className="bg-white rounded-2xl border p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Scale size={16} className="text-red-500" />
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                {metodoLabel[data.metodo] ?? data.metodo}
+              </span>
+            </div>
+
+            {!data.requiereSegundaVuelta && !data.repeticionEleccion && data.ganador && (
+              <div className="flex items-center justify-between py-3 border-b mb-4">
+                <span className="text-sm text-gray-500">Ganador</span>
+                <span className="font-extrabold text-gray-900">{data.ganador}</span>
+              </div>
+            )}
+
+            {/* US-03/04: barras de votos por candidato */}
+            <div className="space-y-3">
+              {Object.entries(data.totales)
+                .sort(([, a], [, b]) => b - a)
+                .map(([candidato, votos]) => {
+                  const total = Object.values(data.totales).reduce((s, v) => s + v, 0)
+                  const pct = total > 0 ? (votos / total) * 100 : 0
+                  return (
+                    <div key={candidato}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-gray-700 font-medium">{candidato}</span>
+                        <span className="font-bold text-gray-900">{pct.toFixed(1)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div
+                          className="bg-red-500 h-2 rounded-full transition-all duration-700"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">{votos.toLocaleString()} votos</p>
+                    </div>
+                  )
+                })}
+            </div>
+          </div>
+
+          {/* US-05: tabla D'Hondt - curules */}
+          {data.curules && Object.keys(data.curules).length > 0 && (
+            <div className="bg-white rounded-2xl border overflow-hidden">
+              <div className="px-5 py-4 border-b flex items-center gap-2">
+                <Users size={15} className="text-red-500" />
+                <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                  Distribución de curules · D'Hondt
+                </span>
+              </div>
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Lista / Candidato</th>
+                    <th className="px-5 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Curules asignadas</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {Object.entries(data.curules)
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([lista, curules]) => (
+                      <tr key={lista} className="hover:bg-gray-50 transition">
+                        <td className="px-5 py-3 font-medium text-gray-900">{lista}</td>
+                        <td className="px-5 py-3 text-right">
+                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-700 font-extrabold text-sm">
+                            {curules}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* US-01: Acta Digital de Mesa - contadores E-14 */}
+          <div className="bg-white rounded-2xl border overflow-hidden">
+            <div className="px-5 py-4 border-b">
+              <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                Acta Digital de Mesa · Formato E-14
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-gray-100">
+              {[
+                { label: "Votos válidos",   value: data.acta.votosValidos,    color: "text-green-600" },
+                { label: "Votos en blanco", value: data.acta.votosEnBlanco,   color: "text-blue-600"  },
+                { label: "No marcados",     value: data.acta.votosNoMarcados, color: "text-amber-600" },
+                { label: "Nulos",           value: data.acta.votosNulos,      color: "text-red-500"   },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="p-4 text-center">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">{label}</p>
+                  <p className={`text-2xl font-extrabold ${color}`}>{value.toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
+            <div className="px-5 py-3 border-t bg-gray-50 flex justify-between">
+              <span className="text-xs text-gray-500">Total votos procesados</span>
+              <span className="text-xs font-bold text-gray-900">{data.acta.totalVotos.toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Log de eventos del acta */}
+          {data.acta.eventos.length > 0 && (
+            <details className="bg-white rounded-2xl border overflow-hidden">
+              <summary className="px-5 py-4 text-xs font-bold text-gray-500 uppercase tracking-wide cursor-pointer hover:bg-gray-50">
+                Log de eventos del acta ({data.acta.eventos.length})
+              </summary>
+              <div className="px-5 pb-4 space-y-1 max-h-48 overflow-y-auto">
+                {data.acta.eventos.map((e, i) => (
+                  <p key={i} className="text-xs font-mono text-gray-500">{e}</p>
+                ))}
+              </div>
+            </details>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "resultados",  label: "Resultados",  icon: <BarChart3   size={15} /> },
   { id: "historico",   label: "Histórico",   icon: <History     size={15} /> },
   { id: "comparacion", label: "Comparación", icon: <GitCompare  size={15} /> },
   { id: "tendencias",  label: "Tendencias",  icon: <TrendingUp  size={15} /> },
+  { id: "escrutinio",  label: "Escrutinio",  icon: <Scale       size={15} /> },
 ]
 
 export default function Resultados() {
@@ -486,7 +709,6 @@ export default function Resultados() {
       <main className="flex-1 px-6 py-10">
         <div className="max-w-4xl mx-auto">
 
-          {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
             <div>
               <h2 className="text-3xl font-bold">Resultados Electorales</h2>
@@ -512,7 +734,7 @@ export default function Resultados() {
             ))}
           </div>
 
-          {/* Tab content */}
+          {/* Contenido del tab activo */}
           {loadingElections ? (
             <Spinner />
           ) : electionError ? (
@@ -523,6 +745,7 @@ export default function Resultados() {
               {activeTab === "historico"   && <TabHistorico />}
               {activeTab === "comparacion" && <TabComparacion elections={elections} />}
               {activeTab === "tendencias"  && <TabTendencias  />}
+              {activeTab === "escrutinio"  && <TabEscrutinio  elections={elections} />}
             </>
           )}
 
