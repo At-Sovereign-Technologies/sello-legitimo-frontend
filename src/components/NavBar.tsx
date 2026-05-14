@@ -19,6 +19,7 @@ export default function NavBar() {
         { label: "Elecciones Activas", path: "/elecciones" },
         { label: "Transparencia Electoral", path: "/transparencia" },
         { label: "Motor Antifraude", path: "/gestion-reglas" },
+        { label: "Casos de Fraude", path: "/gestion-casos-fraude" },
         { label: "Portal Roles", path: "/mock-login" },
     ];
 

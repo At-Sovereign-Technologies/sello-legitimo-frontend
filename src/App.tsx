@@ -25,6 +25,7 @@ import MetodoElectoralReglas from "./pages/configuracion-elecciones/MetodoElecto
 import CircunscripcionesElegibilidad from "./pages/configuracion-elecciones/CircunscripcionesElegibilidad";
 import Auditoria from "./pages/auditoria/Auditoria";
 import ActaCicloVida from "./pages/auditoria/ActaCicloVida";
+import GestionCasosFraude from "./pages/GestionCasosFraude";
 
 const preelectoralRoutes = [
     { path: "/censo/gestion", element: <GestionCenso /> },
@@ -98,6 +99,7 @@ function App() {
                 </Route>
                 <Route path="/publicacion/participacion" element={<ParticipacionEnVivoPage />} />
                 <Route path="/publicacion/resultados" element={<ResultadosParcialPage />} />
+                <Route path="/gestion-casos-fraude" element={<GestionCasosFraude />} />
             </Routes >
         </BrowserRouter >
     );
