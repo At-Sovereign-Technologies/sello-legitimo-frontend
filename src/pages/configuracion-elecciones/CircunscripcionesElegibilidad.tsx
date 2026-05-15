@@ -722,7 +722,6 @@ export default function CircunscripcionesElegibilidad() {
                             {guardando
                                 ? "Enviando..."
                                 : "Finalizar Configuración"}
-                            <span className="ml-1">&#9654;</span>
                         </button>
                     </div>
                 </div>

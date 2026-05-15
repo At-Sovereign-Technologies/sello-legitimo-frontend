@@ -2,12 +2,20 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MockAuthProvider } from "./contexts/MockAuthContext";
+
+
+const queryClient = new QueryClient();  
+
+
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
-        <MockAuthProvider>
-            <App />
+        <MockAuthProvider> 
+             <QueryClientProvider client={queryClient}>
+                <App />
+             </QueryClientProvider>
         </MockAuthProvider>
     </StrictMode>,
 );

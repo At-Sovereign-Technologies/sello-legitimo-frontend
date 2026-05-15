@@ -85,11 +85,11 @@ function App() {
                         element={<ParametrosBase />}
                     />
                     <Route
-                        path="/metodo-electoral"
+                        path="/configuracion/metodo-electoral"
                         element={<MetodoElectoralReglas />}
                     />
                     <Route
-                        path="/circunscripciones"
+                        path="/configuracion/circunscripciones"
                         element={<CircunscripcionesElegibilidad />}
                     />
                     <Route
