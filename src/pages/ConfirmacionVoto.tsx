@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, AlertCircle, Loader2, ListOrdered } from "lucide-react";
 import { emitirPresencial, emitirRemoto } from "../api/emision.api";
 import type {
     EmisionVoto,
@@ -11,6 +11,8 @@ import Footer from "../components/Footer";
 
 // SE-M3-01 / SE-M3-02 — pantalla obligatoria de confirmación antes de
 // registrar definitivamente el voto.
+// US-SE-M3-06 — soporta ranking de voto alternativo y advierte de
+// rankings incompletos (posible voto agotado).
 
 type LocationState = {
     seleccion: { id: string; nombre: string; partido?: string } | null;
@@ -20,6 +22,10 @@ type LocationState = {
     votanteId: string;
     handshakeId?: string | null;
     emailDestino?: string;
+    preferencias: Record<string, number>;
+    modoAlternativo: boolean;
+    rankingIncompleto?: boolean;
+    rankingIncompletoConfirmado?: boolean;
 };
 
 export default function ConfirmacionVoto() {
@@ -37,10 +43,7 @@ export default function ConfirmacionVoto() {
             canal: state.canal,
             circunscripcionId: state.circunscripcionId,
             handshakeId: state.handshakeId ?? null,
-            preferencias:
-                state.enBlanco || !state.seleccion
-                    ? {}
-                    : { [state.seleccion.id]: 1 },
+            preferencias: state.enBlanco ? {} : state.preferencias,
             enBlanco: state.enBlanco,
         };
     }, [state]);
@@ -64,9 +67,53 @@ export default function ConfirmacionVoto() {
         );
     }
 
-    const resumenSeleccion = state.enBlanco
-        ? "VOTO EN BLANCO"
-        : state.seleccion?.nombre ?? "(sin selección)";
+    // Renderiza el resumen según el modo (alternativo vs simple).
+    const resumenContenido = (() => {
+        if (state.enBlanco) {
+            return <p className="text-2xl font-extrabold text-red-500 mt-2">VOTO EN BLANCO</p>;
+        }
+        if (state.modoAlternativo) {
+            const orden = Object.entries(state.preferencias).sort(
+                (a, b) => a[1] - b[1]
+            );
+            if (orden.length === 0) {
+                return (
+                    <p className="text-lg font-bold text-amber-600 mt-2">
+                        VOTO NO MARCADO
+                    </p>
+                );
+            }
+            return (
+                <ol className="mt-3 space-y-2">
+                    {orden.map(([id, n]) => (
+                        <li
+                            key={id}
+                            className="flex items-center gap-3 text-base"
+                        >
+                            <span className="w-7 h-7 rounded-full bg-red-500 text-white text-xs font-extrabold flex items-center justify-center">
+                                {n}
+                            </span>
+                            <span className="font-semibold text-gray-900">
+                                {id}
+                            </span>
+                        </li>
+                    ))}
+                </ol>
+            );
+        }
+        return (
+            <>
+                <p className="text-2xl font-extrabold text-red-500 mt-2">
+                    {state.seleccion?.nombre ?? "(sin selección)"}
+                </p>
+                {state.seleccion?.partido && (
+                    <p className="text-sm text-gray-500 italic mt-1">
+                        {state.seleccion.partido}
+                    </p>
+                )}
+            </>
+        );
+    })();
 
     const confirmar = async () => {
         setEnviando(true);
@@ -124,18 +171,25 @@ export default function ConfirmacionVoto() {
                         </div>
                     </div>
 
+                    {state.modoAlternativo && (
+                        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-2 flex items-center gap-2 mb-4 text-xs text-red-700">
+                            <ListOrdered size={14} />
+                            <span className="font-semibold">
+                                Voto Alternativo (ME-04)
+                            </span>
+                            {state.rankingIncompletoConfirmado && (
+                                <span className="ml-auto px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full font-bold">
+                                    Ranking incompleto — posible voto agotado
+                                </span>
+                            )}
+                        </div>
+                    )}
+
                     <div className="border-y py-6 my-4">
                         <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold">
-                            Su selección
+                            Su {state.modoAlternativo ? "ranking" : "selección"}
                         </p>
-                        <p className="text-2xl font-extrabold text-red-500 mt-2">
-                            {resumenSeleccion}
-                        </p>
-                        {state.seleccion?.partido && !state.enBlanco && (
-                            <p className="text-sm text-gray-500 italic mt-1">
-                                {state.seleccion.partido}
-                            </p>
-                        )}
+                        {resumenContenido}
                     </div>
 
                     <dl className="grid grid-cols-2 gap-y-3 text-sm mb-8">
