@@ -280,6 +280,8 @@ export default function VotingBallot() {
   const votanteId = searchParams.get("votanteId") ?? "anonimo"
   const handshakeId = searchParams.get("handshakeId")
   const emailParam = searchParams.get("email") ?? undefined
+  // SE-M3-05: token de sesion asistida emitido por el jurado.
+  const tokenAsistencia = searchParams.get("tokenAsistencia") ?? undefined
 
   const selectedCandidate = selected === "blank"
     ? null : CANDIDATES.find((c) => c.id === selected) ?? null
@@ -353,6 +355,7 @@ export default function VotingBallot() {
         modoAlternativo,
         rankingIncompleto: modoAlternativo && candidatosRankeados < CANDIDATES.length,
         rankingIncompletoConfirmado,
+        tokenAsistencia,
       },
     })
   }

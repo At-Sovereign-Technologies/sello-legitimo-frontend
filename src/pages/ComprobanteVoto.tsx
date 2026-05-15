@@ -104,6 +104,19 @@ export default function ComprobanteVoto() {
                         </div>
                     </div>
 
+                    {comprobante.votoAsistido && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2 flex items-center gap-2 mb-4 text-xs text-blue-700">
+                            <span className="font-semibold">
+                                Voto asistido (SE-M3-05)
+                            </span>
+                            {comprobante.registroAsistenciaId && (
+                                <span className="ml-auto font-mono text-[10px] text-blue-600 break-all">
+                                    ref: {comprobante.registroAsistenciaId}
+                                </span>
+                            )}
+                        </div>
+                    )}
+
                     <div className="border-y py-5 my-4">
                         <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold">
                             Número de confirmación
