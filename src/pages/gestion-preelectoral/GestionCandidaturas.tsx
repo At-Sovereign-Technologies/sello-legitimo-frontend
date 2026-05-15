@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import PageHeader from "../../components/PageHeader";
 import ComingSoonToast from "../../components/ComingSoonToast";
-import Footer from "../../components/Footer";
 import {
     listarCandidaturasPorEleccion,
     registrarCandidatura,
@@ -1121,7 +1120,6 @@ export default function GestionCandidaturas() {
                 onClose={() => setMostrarToast(false)}
                 message={mensajeToast}
             />
-            <Footer />
         </div>
     );
 }

@@ -272,3 +272,23 @@ export async function importarCensoApi(
     );
     return resultado.mensaje || "Importación API completada";
 }
+
+export async function congelarCenso(
+    eleccionId: number,
+    actor: string,
+): Promise<{ estado: string; totalRegistros: number }> {
+    const response = await fetch(
+        buildGatewayUrl(`${CENSO_BASE}/elecciones/${eleccionId}/congelar`),
+        {
+            method: "POST",
+            headers: createJsonHeaders(getToken()),
+            body: JSON.stringify({ actor }),
+        },
+    );
+
+    const resultado = await procesarRespuesta<{ estado: string; totalRegistros: number }>(
+        response,
+        "No fue posible congelar el censo",
+    );
+    return resultado;
+}

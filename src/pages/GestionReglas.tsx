@@ -23,8 +23,7 @@ import type {
     RuleType,
     ApprovalStatus,
 } from "../types/fraudEngine"
-import NavBar from "../components/NavBar"
-import Footer from "../components/Footer"
+
 
 // -- Configuracion de badges de estado --
 
@@ -562,8 +561,7 @@ export default function GestionReglas() {
     })
 
     return (
-        <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
-            <NavBar />
+        <div className="bg-[#f5f6f7] h-full">
 
             <main className="flex-1 px-6 py-10">
                 <div className="max-w-6xl mx-auto">
@@ -729,8 +727,6 @@ export default function GestionReglas() {
                     )}
                 </div>
             </main>
-
-            <Footer />
         </div>
     )
 }

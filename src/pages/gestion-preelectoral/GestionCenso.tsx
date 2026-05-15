@@ -14,9 +14,9 @@ import {
 } from "lucide-react";
 import PageHeader from "../../components/PageHeader";
 import ComingSoonToast from "../../components/ComingSoonToast";
-import Footer from "../../components/Footer";
 import {
     actualizarRegistroCenso,
+    congelarCenso,
     importarCensoCsv,
     listarElecciones,
     listarRegistrosCenso,
@@ -72,7 +72,7 @@ const CAUSALES_DEFECTO: CausalesEleccion = {
 };
 
 type FiltroActivo = "TODOS" | EstadoCenso;
-type ModalActivo = "NINGUNO" | "IMPORTAR" | "MANUAL" | "EDITAR";
+type ModalActivo = "NINGUNO" | "IMPORTAR" | "MANUAL" | "EDITAR" | "CONGELAR";
 
 interface FormularioEditar {
     estado: EstadoCenso;
@@ -191,6 +191,11 @@ export default function GestionCenso() {
         null,
     );
     const [procesando, setProcesando] = useState(false);
+    const [congelando, setCongelando] = useState(false);
+    const [censoCongelado, setCensoCongelado] = useState<Record<number, boolean>>(() => {
+        try { return JSON.parse(localStorage.getItem("censoCongelado") || "{}"); }
+        catch { return {}; }
+    });
     const [error, setError] = useState<string | null>(null);
     const [modalActivo, setModalActivo] = useState<ModalActivo>("NINGUNO");
     const [documentosCandidatos, setDocumentosCandidatos] = useState<
@@ -649,6 +654,18 @@ export default function GestionCenso() {
                                     Importar Censo
                                 </button>
 
+                                <button
+                                    type="button"
+                                    onClick={() => setModalActivo("CONGELAR")}
+                                    disabled={eleccionActivaId !== null && !!censoCongelado[eleccionActivaId]}
+                                    className="inline-flex items-center gap-2 rounded-lg border border-amber-400 px-3 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                >
+                                    <CircleAlert size={14} />
+                                    {eleccionActivaId !== null && censoCongelado[eleccionActivaId]
+                                        ? "Censo congelado"
+                                        : "Congelar Censo"}
+                                </button>
+
                                 {/* Filtros */}
                                 <div className="flex items-center gap-1">
                                     {(
@@ -962,7 +979,7 @@ export default function GestionCenso() {
             {/* ── Botón flotante ───────────────────────────────────────────────────── */}
             <button
                 onClick={() => setModalActivo("MANUAL")}
-                className="fixed bottom-6 right-6 w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg flex items-center justify-center transition"
+                className="fixed bottom-28 right-6 z-40 w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg flex items-center justify-center transition"
                 aria-label="Agregar registro"
             >
                 <Plus size={22} />
@@ -1377,6 +1394,72 @@ export default function GestionCenso() {
                 </ModalBase>
             )}
 
+            {modalActivo === "CONGELAR" && (
+                <ModalBase
+                    titulo="Congelar censo electoral"
+                    subtitulo="Una vez congelado, no se podrán agregar ni modificar registros. Esta acción es irreversible."
+                    onClose={() => setModalActivo("NINGUNO")}
+                >
+                    <div className="space-y-4">
+                        <div className="rounded-lg bg-amber-50 border border-amber-200 p-4">
+                            <div className="flex items-start gap-3">
+                                <CircleAlert size={20} className="mt-0.5 shrink-0 text-amber-600" />
+                                <div>
+                                    <p className="text-sm font-semibold text-amber-800">
+                                        ¿Está seguro de congelar el censo?
+                                    </p>
+                                    <p className="mt-1 text-xs text-amber-700">
+                                        El censo quedará firme para la elección activa. Los ciudadanos
+                                        registrados hasta este momento serán los habilitados para votar.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setModalActivo("NINGUNO")}
+                                className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    if (!eleccionActivaId) return;
+                                    setCongelando(true);
+                                    try {
+                                        const result = await congelarCenso(
+                                            eleccionActivaId,
+                                            localStorage.getItem("mockUserId") || "admin",
+                                        );
+                                        const updated = { ...censoCongelado, [eleccionActivaId]: true };
+                                        setCensoCongelado(updated);
+                                        localStorage.setItem("censoCongelado", JSON.stringify(updated));
+                                        setMensajeToast(
+                                            `Censo congelado: ${result.estado} (${result.totalRegistros} registros)`,
+                                        );
+                                        setMostrarToast(true);
+                                        setModalActivo("NINGUNO");
+                                    } catch (err: unknown) {
+                                        const msg = err instanceof Error ? err.message : "Error al congelar el censo";
+                                        setMensajeToast(msg);
+                                        setMostrarToast(true);
+                                    } finally {
+                                        setCongelando(false);
+                                    }
+                                }}
+                                disabled={congelando || !eleccionActivaId}
+                                className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:bg-amber-300"
+                            >
+                                {congelando ? "Congelando..." : "Confirmar congelamiento"}
+                            </button>
+                        </div>
+                    </div>
+                </ModalBase>
+            )}
+
             {/* Toast */}
             <ComingSoonToast
                 isVisible={mostrarToast}
@@ -1384,7 +1467,6 @@ export default function GestionCenso() {
                 message={mensajeToast}
             />
 
-            <Footer />
         </div>
     );
 }

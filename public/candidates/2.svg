@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="240" viewBox="0 0 200 240">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#991b1b"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="240" fill="url(#bg2)" rx="8"/>
+  <circle cx="100" cy="72" r="36" fill="rgba(255,255,255,0.2)"/>
+  <circle cx="100" cy="72" r="28" fill="rgba(255,255,255,0.35)"/>
+  <ellipse cx="100" cy="128" rx="48" ry="32" fill="rgba(255,255,255,0.2)"/>
+  <text x="100" y="200" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.8)" font-family="system-ui" font-weight="bold">Elena Gómez</text>
+  <text x="100" y="218" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)" font-family="system-ui">Movimiento Beta</text>
+</svg>

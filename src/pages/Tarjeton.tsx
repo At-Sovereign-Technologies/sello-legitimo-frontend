@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import {
-  CheckSquare, Play, ZoomIn, LogOut, User,
+  CheckSquare, Play, ZoomIn,
   ChevronRight, AlertCircle, AlertTriangle, X, ListOrdered, RotateCcw,
 } from "lucide-react"
 import AccessibilityButtons from "../components/AccesibilityButtons"
-import Footer from "../components/Footer"
 import ComingSoonToast from "../components/ComingSoonToast"
 
 type CandidateId = "juan_pablo" | "elena" | "ricardo" | "blank"
@@ -16,7 +15,8 @@ interface Candidate {
   viceLabel: string
   vice: string
   party: string
-  image?: string
+  initials: string
+  bgColor: string
 }
 
 const CANDIDATES: Candidate[] = [
@@ -26,7 +26,8 @@ const CANDIDATES: Candidate[] = [
     viceLabel: "Fórmula Vicepresidencial",
     vice: "Marta Lucía Santos",
     party: "Partido Alpha",
-    image: "/candidates/1.jpg",
+    initials: "JP",
+    bgColor: "#2563eb",
   },
   {
     id: "elena",
@@ -34,7 +35,8 @@ const CANDIDATES: Candidate[] = [
     viceLabel: "Fórmula Vicepresidencial",
     vice: "Carlos Arturo Peña",
     party: "Movimiento Beta",
-    image: "/candidates/2.jpg",
+    initials: "EG",
+    bgColor: "#dc2626",
   },
   {
     id: "ricardo",
@@ -42,7 +44,8 @@ const CANDIDATES: Candidate[] = [
     viceLabel: "Fórmula Vicepresidencial",
     vice: "Diana Marcela Ortiz",
     party: "Coalición Gamma",
-    image: "/candidates/3.webp",
+    initials: "RV",
+    bgColor: "#ca8a04",
   },
 ]
 
@@ -202,14 +205,17 @@ function CandidateCard({
       }`}
     >
       <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
-        {candidate.image ? (
-          <img src={candidate.image} alt={candidate.name}
-            className="w-full h-full object-cover object-top" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <User size={64} className="text-gray-300" />
+        <div className="w-full h-full flex flex-col items-center justify-center" style={{ backgroundColor: candidate.bgColor }}>
+          <div className="flex-1 flex items-end pb-2">
+            <svg viewBox="0 0 80 80" className="w-20 h-20 opacity-20">
+              <circle cx="40" cy="28" r="16" fill="white"/>
+              <ellipse cx="40" cy="62" rx="24" ry="18" fill="white"/>
+            </svg>
           </div>
-        )}
+          <div className="flex-1 flex items-start pt-2">
+            <span className="text-white text-4xl font-bold opacity-80">{candidate.initials}</span>
+          </div>
+        </div>
         {selected && <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />}
       </div>
       <SelectionMark selected={selected} rank={rank} />
@@ -391,7 +397,7 @@ export default function VotingBallot() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f6f7] font-sans">
+    <div className="font-sans bg-[#f5f6f7]">
 
       {showDialogoNoMarcado && (
         <DialogoNoMarcado
@@ -408,39 +414,6 @@ export default function VotingBallot() {
           onCancelar={() => setShowDialogoRanking(false)}
         />
       )}
-
-      <header className="w-full border-b bg-white px-8 py-3 flex justify-between items-center sticky top-0 z-30">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
-              <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V6L12 2z" />
-            </svg>
-          </div>
-          <div>
-            <h1 className="font-bold text-base leading-none">sello legítimo</h1>
-            <p className="text-[10px] text-red-500 font-bold tracking-wider uppercase">
-              Sistema Electoral Colombiano
-            </p>
-          </div>
-        </div>
-        <nav className="hidden md:flex items-center gap-8 text-sm text-gray-600 font-medium">
-          <button onClick={() => navigate("/")} className="hover:text-gray-900 transition-colors">Inicio</button>
-          <button onClick={() => setShowToast(true)} className="hover:text-gray-900 transition-colors">Instrucciones</button>
-          <button onClick={() => setShowToast(true)} className="hover:text-gray-900 transition-colors">Ayuda</button>
-        </nav>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowToast(true)}
-            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 transition-colors text-white text-sm font-semibold px-4 py-2 rounded-lg"
-          >
-            <LogOut size={14} />
-            Cerrar Sesión
-          </button>
-          <div className="w-9 h-9 rounded-full bg-gray-100 border flex items-center justify-center">
-            <User size={16} className="text-gray-400" />
-          </div>
-        </div>
-      </header>
 
       <div className="px-8 py-3 flex items-center gap-1 text-xs">
         <span className="text-red-500 font-semibold hover:underline cursor-pointer">Elecciones Presidenciales</span>
@@ -592,7 +565,6 @@ export default function VotingBallot() {
         </div>
       </main>
 
-      <Footer />
       <AccessibilityButtons />
       <ComingSoonToast isVisible={showToast} onClose={() => setShowToast(false)} />
     </div>

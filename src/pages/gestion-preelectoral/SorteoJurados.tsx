@@ -7,17 +7,15 @@ import {
     Users,
     MapPin,
     Hash,
-    RefreshCw,
+    RefreshCw, RotateCcw,
     List,
     Search,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import ComingSoonToast from "../../components/ComingSoonToast";
-import Footer from "../../components/Footer";
 import {
     realizarSorteo,
-    resetearMock,
     obtenerEstadoMock,
     listarEleccionesJurados,
     listarJuradosPorEleccion,
@@ -100,6 +98,10 @@ export default function SorteoJurados() {
     const [juradosFiltrados, setJuradosFiltrados] = useState<Jurado[]>([]);
     const [cargandoJurados, setCargandoJurados] = useState(false);
     const [mostrarListaJurados, setMostrarListaJurados] = useState(false);
+    const [sorteosRealizados, setSorteosRealizados] = useState<Record<number, boolean>>(() => {
+        try { return JSON.parse(localStorage.getItem("sorteosRealizados") || "{}"); }
+        catch { return {}; }
+    });
 
     function abrirToast(mensaje: string) {
         setMensajeToast(mensaje);
@@ -159,6 +161,11 @@ export default function SorteoJurados() {
 
     async function manejarSorteo() {
         if (!validarFormulario()) return;
+        const eleccionId = Number(formulario.eleccionId);
+        if (sorteosRealizados[eleccionId]) {
+            setError("Ya se realizó un sorteo para esta elección. Debe marcar el sorteo actual como 'deprecado' para realizar uno nuevo.");
+            return;
+        }
         setCargando(true);
         setError(null);
         try {
@@ -169,6 +176,9 @@ export default function SorteoJurados() {
                 seed: Number(formulario.seed),
             });
             setResultado(respuesta);
+            const updated = { ...sorteosRealizados, [eleccionId]: true };
+            setSorteosRealizados(updated);
+            localStorage.setItem("sorteosRealizados", JSON.stringify(updated));
             await cargarEstadoMock();
             abrirToast(
                 `Sorteo completado: ${respuesta.totalJurados} jurados en ${respuesta.totalMesas} mesas`,
@@ -178,26 +188,6 @@ export default function SorteoJurados() {
                 err instanceof Error
                     ? err.message
                     : "No fue posible realizar el sorteo",
-            );
-        } finally {
-            setCargando(false);
-        }
-    }
-
-    async function manejarReset() {
-        setCargando(true);
-        setError(null);
-        setFormErrors({});
-        try {
-            await resetearMock();
-            setResultado(null);
-            await cargarEstadoMock();
-            abrirToast("Estado del mock reiniciado correctamente");
-        } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : "No fue posible reiniciar el mock",
             );
         } finally {
             setCargando(false);
@@ -285,16 +275,6 @@ export default function SorteoJurados() {
                                     <Dices size={18} className="text-red-500" />
                                     Configurar Sorteo
                                 </h2>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={manejarReset}
-                                        disabled={cargando}
-                                        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50"
-                                    >
-                                        <RefreshCw size={13} />
-                                        Reiniciar mock
-                                    </button>
-                                </div>
                             </div>
 
                             <div className="grid gap-4 sm:grid-cols-3">
@@ -464,16 +444,35 @@ export default function SorteoJurados() {
                                 </div>
                             </div>
 
-                            <div className="mt-4 flex justify-end">
+                            <div className="mt-4 flex justify-end gap-3">
+                                {Number(formulario.eleccionId) > 0 && sorteosRealizados[Number(formulario.eleccionId)] && (
+                                    <button
+                                        onClick={() => {
+                                            const eleccionId = Number(formulario.eleccionId);
+                                            const updated = { ...sorteosRealizados };
+                                            delete updated[eleccionId];
+                                            setSorteosRealizados(updated);
+                                            localStorage.setItem("sorteosRealizados", JSON.stringify(updated));
+                                            setError(null);
+                                            abrirToast("Sorteo marcado como deprecado. Puede realizar uno nuevo.");
+                                        }}
+                                        className="inline-flex items-center gap-2 rounded-lg border border-amber-300 px-5 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-50"
+                                    >
+                                        <RotateCcw size={16} />
+                                        Deprecar sorteo
+                                    </button>
+                                )}
                                 <button
                                     onClick={manejarSorteo}
-                                    disabled={cargando}
+                                    disabled={cargando || (Number(formulario.eleccionId) > 0 && !!sorteosRealizados[Number(formulario.eleccionId)])}
                                     className="inline-flex items-center gap-2 rounded-lg bg-red-500 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:bg-red-300"
                                 >
                                     <Dices size={16} />
                                     {cargando
                                         ? "Ejecutando sorteo..."
-                                        : "Realizar sorteo"}
+                                        : Number(formulario.eleccionId) > 0 && sorteosRealizados[Number(formulario.eleccionId)]
+                                          ? "Sorteo ya realizado"
+                                          : "Realizar sorteo"}
                                 </button>
                             </div>
                         </div>
@@ -861,14 +860,6 @@ export default function SorteoJurados() {
                                     El sorteo es determinístico: misma semilla =
                                     mismos jurados.
                                 </li>
-                                <li className="flex items-start gap-2">
-                                    <Hash
-                                        size={13}
-                                        className="mt-0.5 text-red-500 flex-shrink-0"
-                                    />
-                                    Usa "Reiniciar mock" para limpiar todo el
-                                    estado en memoria.
-                                </li>
                             </ul>
                         </div>
                     </div>
@@ -882,7 +873,6 @@ export default function SorteoJurados() {
                 message={mensajeToast}
             />
 
-            <Footer />
         </div>
     );
 }

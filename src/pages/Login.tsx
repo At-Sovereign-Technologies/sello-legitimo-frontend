@@ -1,13 +1,17 @@
 import { useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Lock, User, ArrowRight, Loader2, KeyRound, ShieldAlert } from "lucide-react";
 import { login, verifyMFA } from "../api/auth.api";
 import { storeAuthToken } from "../services/authService";
-import Header from "../components/LoginHeader";
 import Footer from "../components/Footer";
 
 type Step = "credentials" | "mfa_challenge";
 
 export default function Login() {
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const roleHint = searchParams.get("role");
+
     const [step, setStep] = useState<Step>("credentials");
     const [documento, setDocumento] = useState("");
     const [password, setPassword] = useState("");
@@ -15,6 +19,8 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [mfaMessage, setMfaMessage] = useState<string | null>(null);
+
+    const isCiudadano = roleHint === "ciudadano";
 
     const handleLogin = async () => {
         const doc = documento.trim();
@@ -34,15 +40,22 @@ export default function Login() {
 
             if (status === "AUTHENTICATED") {
                 const token = result.token as string;
-                storeAuthToken(token, documento);
-                window.location.href = "/perfil";
+                const user = (result.user as Record<string, unknown>) || {};
+                const role = (user.rol as string) || "";
+                const nombre = (user.nombreCompleto as string) || (user.nombre as string) || doc;
+                storeAuthToken(token, nombre);
+                if (role) {
+                    localStorage.setItem("mockRole", role);
+                }
+                localStorage.setItem("mockUserId", doc);
+                window.location.href = "/dashboard";
             } else if (status === "MFA_SETUP_REQUIRED") {
                 const tempToken = result.token as string;
-                storeAuthToken(tempToken, documento);
+                storeAuthToken(tempToken, doc);
                 window.location.href = "/perfil";
             } else if (status === "MFA_CHALLENGE") {
                 const tempToken = result.token as string;
-                storeAuthToken(tempToken, documento);
+                storeAuthToken(tempToken, doc);
                 setMfaMessage((result.message as string) || "Verifique su código MFA");
                 setStep("mfa_challenge");
             } else {
@@ -65,8 +78,14 @@ export default function Login() {
         try {
             const result = await verifyMFA(otpCode);
             const token = result.token as string;
-            storeAuthToken(token, documento);
-            window.location.href = "/perfil";
+            const user = (result.user as Record<string, unknown>) || {};
+            const role = (user.rol as string) || "";
+            const nombre = (user.nombreCompleto as string) || (user.nombre as string) || documento;
+            storeAuthToken(token, nombre);
+            if (role) {
+                localStorage.setItem("mockRole", role);
+            }
+            window.location.href = "/dashboard";
         } catch (err) {
             setError(err instanceof Error ? err.message : "Código inválido");
         } finally {
@@ -76,7 +95,22 @@ export default function Login() {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
-            <Header />
+            <header className="bg-white border-b px-10 py-6">
+                <div className="max-w-7xl mx-auto flex justify-between items-center">
+                    <button
+                        onClick={() => navigate("/")}
+                        className="flex flex-col leading-tight text-left"
+                    >
+                        <span className="font-bold text-lg">Sello Legítimo</span>
+                        <span className="text-red-500 text-xs font-semibold tracking-wide">
+                            SISTEMA ELECTORAL COLOMBIANO
+                        </span>
+                    </button>
+                    <span className={`text-sm font-semibold px-3 py-1 rounded-full ${isCiudadano ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"}`}>
+                        Portal {isCiudadano ? "Ciudadano" : "Registraduría"}
+                    </span>
+                </div>
+            </header>
 
             <main className="flex-1 px-10 py-10">
                 <div className="grid md:grid-cols-2 gap-10 max-w-7xl mx-auto">
@@ -85,7 +119,10 @@ export default function Login() {
                             Inicio de sesión
                         </h2>
                         <p className="text-gray-600 mb-6">
-                            Acceda con su documento y contraseña.
+                            {isCiudadano
+                                ? "Acceda con su documento y contraseña para consultar información electoral."
+                                : "Acceda con sus credenciales institucionales. Se requiere autenticación de dos factores."
+                            }
                         </p>
 
                         {error && (
@@ -130,7 +167,7 @@ export default function Login() {
                                 <button
                                     onClick={handleLogin}
                                     disabled={loading}
-                                    className="w-full bg-red-500 text-white py-3 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-60"
+                                    className={`w-full text-white py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 disabled:opacity-60 ${isCiudadano ? "bg-blue-600 hover:bg-blue-700" : "bg-red-500 hover:bg-red-600"}`}
                                 >
                                     {loading ? (
                                         <Loader2 size={18} className="animate-spin" />
@@ -184,7 +221,7 @@ export default function Login() {
                             <div className="w-40 h-40 mx-auto border-2 border-red-300 rounded-full flex items-center justify-center mb-4">
                                 <User size={40} className="text-gray-300" />
                             </div>
-                            <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full">
+                            <span className={`text-white text-xs px-3 py-1 rounded-full ${isCiudadano ? "bg-blue-500" : "bg-red-500"}`}>
                                 VISTA PREVIA
                             </span>
                             <p className="mt-4 font-semibold">

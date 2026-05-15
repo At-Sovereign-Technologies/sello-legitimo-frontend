@@ -16,35 +16,47 @@ const BASE = "/api/v1/fraud-engine"
 // Genera los headers de identidad requeridos por el backend
 function authHeaders(): Record<string, string> {
     const role = localStorage.getItem("mockRole") ?? ""
-    // Derivar un id de usuario a partir del rol
     const userIdMap: Record<string, string> = {
         ADMIN_RNEC: "admin.rnec.01",
         DELEGADO_CNE: "delegado.cne.01",
+        ADMINISTRADOR: "admin.rnec.01",
+        SUPERADMIN: "admin.rnec.01",
+        AUDITOR: "auditor.01",
+        OPERADOR: "operador.01",
+        REGISTRADOR: "registrador.01",
+        MAGISTRADO: "magistrado.01",
     }
     return {
-        "X-User-Id": userIdMap[role] ?? "unknown",
+        "X-User-Id": userIdMap[role] ?? role.toLowerCase(),
         "X-User-Role": role,
     }
 }
 
 // Traduce codigos de error HTTP a mensajes legibles en espanol
 function handleApiError(err: unknown): never {
-    if (typeof err === "object" && err !== null && "response" in err) {
-        const response = (err as { response: { status: number; data?: { message?: string } } }).response
-        switch (response.status) {
+    // Connection/network errors (no response from server)
+    if (typeof err === "object" && err !== null) {
+        const axiosErr = err as { response?: { status: number; data?: { message?: string } }; request?: unknown; message?: string };
+        if (!axiosErr.response) {
+            if (axiosErr.request || axiosErr.message?.includes("Network") || axiosErr.message?.includes("fetch")) {
+                throw new Error("El servicio no está disponible en este momento. Intente de nuevo más tarde.");
+            }
+            throw new Error("Error de conexión al servidor.");
+        }
+        switch (axiosErr.response.status) {
             case 400:
-                throw new Error(response.data?.message ?? "Datos de entrada invalidos. Revise los campos del formulario.")
+                throw new Error(axiosErr.response.data?.message ?? "Datos de entrada invalidos. Revise los campos del formulario.");
             case 403:
-                throw new Error("No tiene permisos para realizar esta accion con su rol actual.")
+                throw new Error("No tiene permisos para realizar esta accion con su rol actual.");
             case 404:
-                throw new Error("La regla solicitada no fue encontrada.")
+                throw new Error("El recurso solicitado no fue encontrado en el servidor.");
             case 409:
-                throw new Error(response.data?.message ?? "Operacion invalida para el estado actual de la regla.")
+                throw new Error(axiosErr.response.data?.message ?? "Operacion invalida para el estado actual del recurso.");
             default:
-                throw new Error(response.data?.message ?? "Ocurrio un error inesperado en el servidor.")
+                throw new Error(axiosErr.response.data?.message ?? "El servicio no está disponible en este momento. Intente de nuevo más tarde.");
         }
     }
-    throw err
+    throw err;
 }
 
 // 1. Listar todas las reglas

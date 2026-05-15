@@ -13,7 +13,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import ComingSoonToast from "../../components/ComingSoonToast";
-import Footer from "../../components/Footer";
 import {
     listarTodosJurados,
     listarTodasExcusas,
@@ -889,7 +888,6 @@ export default function GestionExcusas() {
                 message={mensajeToast}
             />
 
-            <Footer />
         </div>
     );
 }

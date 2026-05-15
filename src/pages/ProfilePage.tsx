@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Shield, Lock, Loader2, AlertCircle } from "lucide-react";
-import NavBar from "../components/NavBar";
 import UserMenu from "../components/UserMenu";
 import ProfileInfo from "../components/profile/ProfileInfo";
 import MFASetup from "../components/profile/MFASetup";
@@ -76,15 +75,26 @@ export default function ProfilePage() {
         return rol !== "CIUDADANO";
     };
 
+    // Determinar si el usuario puede usar la bóveda
+    const showBoveda = () => {
+        if (!profile) return false;
+        const rol = profile.rol?.toUpperCase() || "";
+        return rol === "MAGISTRADO" || rol === "CLAVERO";
+    };
+
     // Filtrar pestañas según el rol
     const visibleTabs = TABS.filter((tab) => {
         if (tab.id === "seguridad") return showSeguridad();
+        if (tab.id === "boveda") return showBoveda();
         return true;
     });
 
     // Cambiar automáticamente si la pestaña actual se oculta
     useEffect(() => {
         if (activeTab === "seguridad" && !showSeguridad()) {
+            setActiveTab("perfil");
+        }
+        if (activeTab === "boveda" && !showBoveda()) {
             setActiveTab("perfil");
         }
     }, [profile]);
@@ -109,8 +119,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <NavBar />
+        <div className="bg-gray-50 h-full">
 
             {/* Encabezado */}
             <div className="border-b border-gray-200 bg-white">
@@ -172,7 +181,22 @@ export default function ProfilePage() {
                                 onProfileUpdate={setProfile}
                             />
                         )}
-                        {activeTab === "boveda" && <BovedaKeys />}
+                        {activeTab === "boveda" && showBoveda() && <BovedaKeys />}
+                        {activeTab === "boveda" && !showBoveda() && (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-center">
+                                <Shield size={32} className="mx-auto text-amber-500" />
+                                <h3 className="mt-3 text-sm font-semibold text-amber-800">
+                                    Acceso restringido
+                                </h3>
+                                <p className="mt-1 text-xs text-amber-700">
+                                    La gestión de la bóveda de seguridad está disponible únicamente
+                                    para Magistrados y Claveros.
+                                </p>
+                                <p className="mt-2 text-xs text-gray-500">
+                                    Rol actual: <span className="font-medium">{profile?.rol}</span>
+                                </p>
+                            </div>
+                        )}
                     </main>
                 </div>
             </div>

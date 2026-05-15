@@ -131,12 +131,60 @@ export function storeAuthToken(token: string, username?: string): void {
     }
 }
 
+// Mapeo de roles simulados a números de documento reales en lista_blanca
+// para que el backend pueda resolver el usuario durante mock login.
+export const MOCK_ROLE_DOCUMENTS: Record<string, string> = {
+    CIUDADANO: "1078901234",
+    VOTANTE: "1012345678",
+    ADMINISTRADOR: "10000001",
+    SUPERADMIN: "10000002",
+    DELEGADO_CNE: "10000002",
+    AUDITOR: "10000003",
+    OPERADOR: "10000005",
+    MAGISTRADO: "99999001",
+    REGISTRADOR: "10000001",
+    CLAVERO: "99999001",
+};
+
+function base64UrlEncode(str: string): string {
+    return btoa(str)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+}
+
+/**
+ * Genera un token JWT sintético compatible con el backend mock de GPE.
+ * El backend parsea el payload sin verificar la firma, por lo que cualquier
+ * firma base64url es aceptada.
+ */
+export function generateMockToken(role: string, documento: string): string {
+    const header = base64UrlEncode(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+    const now = Math.floor(Date.now() / 1000);
+    const payload = base64UrlEncode(
+        JSON.stringify({
+            sub: documento,
+            role,
+            mfa_verified: true,
+            vault_access: false,
+            type: "session",
+            iat: now,
+            exp: now + 86400,
+            jti: "mock-" + Math.random().toString(36).substring(2),
+        })
+    );
+    const signature = base64UrlEncode("mocksignature");
+    return `${header}.${payload}.${signature}`;
+}
+
 /**
  * Clear authentication data (logout)
  */
 export function logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USERNAME_KEY);
+    localStorage.removeItem("mockRole");
+    localStorage.removeItem("mockUserId");
 }
 
 /**

@@ -19,8 +19,7 @@ import type {
     EvaluateResponse,
     AlertSeverity,
 } from "../types/fraudEngine"
-import NavBar from "../components/NavBar"
-import Footer from "../components/Footer"
+
 
 // -- Configuracion de severidad --
 
@@ -163,8 +162,7 @@ export default function EvaluacionAntifraude() {
         : []
 
     return (
-        <div className="min-h-screen flex flex-col bg-[#f5f6f7]">
-            <NavBar />
+        <div className="bg-[#f5f6f7] h-full">
 
             <main className="flex-1 px-6 py-10">
                 <div className="max-w-5xl mx-auto">
@@ -346,8 +344,6 @@ export default function EvaluacionAntifraude() {
                     )}
                 </div>
             </main>
-
-            <Footer />
         </div>
     )
 }

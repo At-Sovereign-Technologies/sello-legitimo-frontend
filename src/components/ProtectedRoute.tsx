@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { isAuthenticated } from "../services/authService";
+import { isAuthenticated, isMockAuth } from "../services/authService";
 
 export default function ProtectedRoute() {
-    return isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
+    const authenticated = isAuthenticated() || isMockAuth();
+    return authenticated ? <Outlet /> : <Navigate to="/login" replace />;
 }
