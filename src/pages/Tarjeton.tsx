@@ -1,15 +1,13 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useMemo, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import {
   CheckSquare, Play, ZoomIn, LogOut, User,
-  ChevronRight, AlertCircle, AlertTriangle, X,
+  ChevronRight, AlertCircle, AlertTriangle, X, ListOrdered, RotateCcw,
 } from "lucide-react"
 import AccessibilityButtons from "../components/AccesibilityButtons"
 import Footer from "../components/Footer"
 import ComingSoonToast from "../components/ComingSoonToast"
 
-// US-01: clasificación de intención de voto (equivalente E-14)
-type TipoVoto = "valido" | "blanco" | "no_marcado" | "nulo"
 type CandidateId = "juan_pablo" | "elena" | "ricardo" | "blank"
 
 interface Candidate {
@@ -48,14 +46,7 @@ const CANDIDATES: Candidate[] = [
   },
 ]
 
-// US-01: determinar TipoVoto según selección
-function clasificarVoto(selected: CandidateId | null): TipoVoto {
-  if (selected === null) return "no_marcado"
-  if (selected === "blank") return "blanco"
-  return "valido"
-}
-
-// ─── Diálogo de confirmación obligatoria (US-01) ──────────────────────────────
+// Diálogo cuando el votante avanza sin marcar (clasificación E-14 "no marcado").
 function DialogoNoMarcado({
   onConfirmar,
   onCancelar,
@@ -64,7 +55,6 @@ function DialogoNoMarcado({
   onCancelar: () => void
 }) {
   return (
-    // faux-viewport para que el modal contribuya altura al layout
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       role="dialog"
@@ -78,10 +68,7 @@ function DialogoNoMarcado({
             <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
               <AlertTriangle size={20} className="text-amber-500" />
             </div>
-            <h3
-              id="dialogo-titulo"
-              className="font-bold text-gray-900 text-base"
-            >
+            <h3 id="dialogo-titulo" className="font-bold text-gray-900 text-base">
               No ha seleccionado ninguna opción
             </h3>
           </div>
@@ -98,9 +85,6 @@ function DialogoNoMarcado({
           Su tarjetón no tiene ninguna marca. Si continúa, su voto será registrado
           como <strong className="text-gray-900">Voto No Marcado</strong> y no
           contará para ningún candidato ni para el voto en blanco formal.
-          <br />
-          <br />
-          ¿Desea continuar sin marcar o prefiere regresar a seleccionar una opción?
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -122,64 +106,39 @@ function DialogoNoMarcado({
   )
 }
 
-// ─── Diálogo de confirmación de voto (US-01) ──────────────────────────────────
-function DialogoConfirmacion({
-  tipoVoto,
-  selectionLabel,
+// US-SE-M3-06: aviso de ranking incompleto (posible voto agotado).
+function DialogoRankingIncompleto({
+  marcados,
+  total,
   onConfirmar,
   onCancelar,
 }: {
-  tipoVoto: TipoVoto
-  selectionLabel: string
+  marcados: number
+  total: number
   onConfirmar: () => void
   onCancelar: () => void
 }) {
-  const tagColors: Record<TipoVoto, string> = {
-    valido:     "bg-green-100 text-green-800",
-    blanco:     "bg-blue-100 text-blue-800",
-    no_marcado: "bg-amber-100 text-amber-800",
-    nulo:       "bg-gray-100 text-gray-600",
-  }
-  const tagLabels: Record<TipoVoto, string> = {
-    valido:     "Voto Válido",
-    blanco:     "Voto en Blanco Formal",
-    no_marcado: "Voto No Marcado",
-    nulo:       "Voto Nulo",
-  }
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="confirm-titulo"
     >
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
-        <div className="flex items-start justify-between mb-4">
-          <h3 id="confirm-titulo" className="font-bold text-gray-900 text-base">
-            Confirme su voto
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+            <AlertTriangle size={20} className="text-amber-500" />
+          </div>
+          <h3 className="font-bold text-gray-900 text-base">
+            Ranking incompleto — posible voto agotado
           </h3>
-          <button onClick={onCancelar} aria-label="Cerrar" className="text-gray-400 hover:text-gray-600">
-            <X size={18} />
-          </button>
         </div>
 
-        <div className="bg-gray-50 rounded-xl p-4 mb-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500 uppercase tracking-wide">Selección</span>
-            <span className="font-bold text-gray-900 text-sm">{selectionLabel}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500 uppercase tracking-wide">Clasificación E-14</span>
-            <span className={`text-xs font-bold px-2 py-1 rounded-full ${tagColors[tipoVoto]}`}>
-              {tagLabels[tipoVoto]}
-            </span>
-          </div>
-        </div>
-
-        <p className="text-xs text-gray-500 mb-6 leading-relaxed">
-          Una vez confirmado, su voto será enviado al Motor de Urna Digital y no
-          podrá ser modificado.
+        <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+          Solo asignó preferencia a <strong>{marcados} de {total}</strong> candidatos. En el método
+          de Voto Alternativo (ME-04), si todos sus elegidos son eliminados en
+          rondas anteriores, su voto se considerará <strong>agotado</strong> y no
+          contribuirá al cómputo final.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3">
@@ -187,13 +146,13 @@ function DialogoConfirmacion({
             onClick={onCancelar}
             className="flex-1 border border-gray-300 rounded-xl py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
           >
-            Corregir mi voto
+            Completar ranking
           </button>
           <button
             onClick={onConfirmar}
-            className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl py-2.5 text-sm font-bold transition"
+            className="flex-1 bg-amber-500 hover:bg-amber-600 text-white rounded-xl py-2.5 text-sm font-bold transition"
           >
-            Confirmar y emitir voto
+            Continuar igualmente
           </button>
         </div>
       </div>
@@ -201,31 +160,41 @@ function DialogoConfirmacion({
   )
 }
 
-function SelectionMark({ selected }: { selected: boolean }) {
+function SelectionMark({ selected, rank }: { selected: boolean; rank?: number }) {
   return (
     <div
       className={`absolute top-3 right-3 w-9 h-9 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
-        selected ? "bg-red-500 border-red-500" : "bg-white border-gray-300"
+        selected ? "bg-red-500 border-red-500 text-white" : "bg-white border-gray-300"
       }`}
     >
-      {selected && (
+      {selected && rank ? (
+        <span className="text-sm font-extrabold">{rank}</span>
+      ) : selected ? (
         <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"
           strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
           <polyline points="20 6 9 17 4 12" />
         </svg>
-      )}
+      ) : null}
     </div>
   )
 }
 
-function CandidateCard({ candidate, selected, onSelect }: {
-  candidate: Candidate; selected: boolean; onSelect: () => void
+function CandidateCard({
+  candidate,
+  selected,
+  rank,
+  onSelect,
+}: {
+  candidate: Candidate
+  selected: boolean
+  rank?: number
+  onSelect: () => void
 }) {
   return (
     <button
       onClick={onSelect}
       aria-pressed={selected}
-      aria-label={`Seleccionar ${candidate.name}, ${candidate.party}`}
+      aria-label={`Seleccionar ${candidate.name}, ${candidate.party}${rank ? `, preferencia ${rank}` : ""}`}
       className={`relative text-left w-full rounded-2xl border-2 overflow-hidden transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-400 ${
         selected
           ? "border-red-500 shadow-lg shadow-red-100 bg-white"
@@ -243,7 +212,7 @@ function CandidateCard({ candidate, selected, onSelect }: {
         )}
         {selected && <div className="absolute inset-0 bg-red-500/10 pointer-events-none" />}
       </div>
-      <SelectionMark selected={selected} />
+      <SelectionMark selected={selected} rank={rank} />
       <div className="p-4">
         <p className="font-bold text-sm leading-tight text-gray-900 uppercase tracking-tight">
           {candidate.name}
@@ -286,14 +255,31 @@ function BlankVoteCard({ selected, onSelect }: { selected: boolean; onSelect: ()
 }
 
 export default function VotingBallot() {
+  // Modo simple: 1 candidato O voto en blanco.
   const [selected, setSelected] = useState<CandidateId | null>(null)
+  // Modo alternativo (ME-04): mapa { candidatoId -> preferencia (1..N) }.
+  // Voto en blanco no participa en ranking.
+  const [modoAlternativo, setModoAlternativo] = useState(false)
+  const [ranking, setRanking] = useState<Record<string, number>>({})
+
   const [showToast, setShowToast] = useState(false)
-  // US-01: estados de diálogos
   const [showDialogoNoMarcado, setShowDialogoNoMarcado] = useState(false)
-  const [showDialogoConfirm, setShowDialogoConfirm]     = useState(false)
-  const [votoEmitido, setVotoEmitido]                   = useState(false)
-  const [tipoVotoEmitido, setTipoVotoEmitido]           = useState<TipoVoto | null>(null)
+  const [showDialogoRanking, setShowDialogoRanking] = useState(false)
+
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  const canal = useMemo<"Presencial" | "Remoto">(() => {
+    return searchParams.get("canal")?.toLowerCase() === "remoto"
+      ? "Remoto"
+      : "Presencial"
+  }, [searchParams])
+
+  const circunscripcionId =
+    searchParams.get("circunscripcion") ?? "PRESIDENCIAL-NACIONAL"
+  const votanteId = searchParams.get("votanteId") ?? "anonimo"
+  const handshakeId = searchParams.get("handshakeId")
+  const emailParam = searchParams.get("email") ?? undefined
 
   const selectedCandidate = selected === "blank"
     ? null : CANDIDATES.find((c) => c.id === selected) ?? null
@@ -302,71 +288,108 @@ export default function VotingBallot() {
     ? "Voto en Blanco"
     : selectedCandidate ? selectedCandidate.name : "Sin selección"
 
-  // US-01: lógica del botón "Revisar mi voto"
+  // ─── Lógica modo alternativo (ME-04) ────────────────────────────────────
+  const candidatosRankeados = Object.keys(ranking).length
+
+  const toggleRanking = (candidatoId: string) => {
+    setRanking((prev) => {
+      // Si ya estaba, lo quito y reajusto preferencias.
+      if (prev[candidatoId]) {
+        const eliminado = prev[candidatoId]
+        const nuevo: Record<string, number> = {}
+        for (const [k, v] of Object.entries(prev)) {
+          if (k === candidatoId) continue
+          nuevo[k] = v > eliminado ? v - 1 : v
+        }
+        return nuevo
+      }
+      // Si no estaba, le asigno el siguiente número.
+      const siguiente = Object.keys(prev).length + 1
+      return { ...prev, [candidatoId]: siguiente }
+    })
+  }
+
+  const limpiarRanking = () => setRanking({})
+
+  const cambiarModo = (alternativo: boolean) => {
+    setModoAlternativo(alternativo)
+    setSelected(null)
+    setRanking({})
+  }
+
+  // ─── Acción del botón "Revisar mi voto" ─────────────────────────────────
+  const irAConfirmacion = (rankingIncompletoConfirmado = false) => {
+    // Construir payload de preferencias según el modo.
+    let preferencias: Record<string, number> = {}
+    let enBlanco = false
+    let seleccion: { id: string; nombre: string; partido?: string } | null = null
+
+    if (modoAlternativo) {
+      preferencias = ranking
+      // En modo alternativo, voto en blanco no aplica.
+    } else {
+      if (selected === "blank") {
+        enBlanco = true
+      } else if (selectedCandidate) {
+        preferencias = { [selectedCandidate.id]: 1 }
+        seleccion = {
+          id: selectedCandidate.id,
+          nombre: selectedCandidate.name,
+          partido: selectedCandidate.party,
+        }
+      }
+    }
+
+    navigate("/confirmacion-voto", {
+      state: {
+        seleccion,
+        enBlanco,
+        canal,
+        circunscripcionId,
+        votanteId,
+        handshakeId,
+        emailDestino: emailParam,
+        preferencias,
+        modoAlternativo,
+        rankingIncompleto: modoAlternativo && candidatosRankeados < CANDIDATES.length,
+        rankingIncompletoConfirmado,
+      },
+    })
+  }
+
   const handleRevisar = () => {
+    if (modoAlternativo) {
+      if (candidatosRankeados === 0) {
+        setShowDialogoNoMarcado(true)
+        return
+      }
+      if (candidatosRankeados < CANDIDATES.length) {
+        setShowDialogoRanking(true)
+        return
+      }
+      irAConfirmacion()
+      return
+    }
     if (!selected) {
-      // mostrar diálogo obligatorio de no marcado
       setShowDialogoNoMarcado(true)
       return
     }
-    setShowDialogoConfirm(true)
+    irAConfirmacion()
   }
 
-  // US-01: votante confirma activamente voto no marcado
   const handleConfirmarNoMarcado = () => {
     setShowDialogoNoMarcado(false)
-    setShowDialogoConfirm(true)
+    irAConfirmacion()
   }
 
-  // US-01: emitir voto con tipo clasificado
-  const handleEmitirVoto = () => {
-    const tipo = clasificarVoto(selected)
-    setTipoVotoEmitido(tipo)
-    setVotoEmitido(true)
-    setShowDialogoConfirm(false)
-  }
-
-  if (votoEmitido && tipoVotoEmitido) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f5f6f7] gap-6 px-4">
-        <div className="bg-white rounded-2xl border p-8 max-w-md w-full text-center shadow-sm">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5"
-              strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-extrabold text-gray-900 mb-2">Voto emitido</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Su voto ha sido registrado en el Motor de Urna Digital.
-          </p>
-          <div className="bg-gray-50 rounded-xl p-4 text-left space-y-2 mb-6">
-            <div className="flex justify-between">
-              <span className="text-xs text-gray-400 uppercase tracking-wide">Selección</span>
-              <span className="text-sm font-semibold text-gray-800">{selectionLabel}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-xs text-gray-400 uppercase tracking-wide">Tipo E-14</span>
-              <span className="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-800 capitalize">
-                {tipoVotoEmitido.replace("_", " ")}
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={() => navigate("/")}
-            className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl text-sm transition"
-          >
-            Finalizar sesión
-          </button>
-        </div>
-      </div>
-    )
+  const handleConfirmarRankingIncompleto = () => {
+    setShowDialogoRanking(false)
+    irAConfirmacion(true)
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f5f6f7] font-sans">
 
-      {/* US-01: diálogo no marcado */}
       {showDialogoNoMarcado && (
         <DialogoNoMarcado
           onConfirmar={handleConfirmarNoMarcado}
@@ -374,13 +397,12 @@ export default function VotingBallot() {
         />
       )}
 
-      {/* US-01: diálogo confirmación final */}
-      {showDialogoConfirm && (
-        <DialogoConfirmacion
-          tipoVoto={clasificarVoto(selected)}
-          selectionLabel={selectionLabel}
-          onConfirmar={handleEmitirVoto}
-          onCancelar={() => setShowDialogoConfirm(false)}
+      {showDialogoRanking && (
+        <DialogoRankingIncompleto
+          marcados={candidatosRankeados}
+          total={CANDIDATES.length}
+          onConfirmar={handleConfirmarRankingIncompleto}
+          onCancelar={() => setShowDialogoRanking(false)}
         />
       )}
 
@@ -424,7 +446,7 @@ export default function VotingBallot() {
       </div>
 
       <main className="flex-1 px-8 pb-16 max-w-6xl mx-auto w-full">
-        <div className="bg-white rounded-2xl border px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="bg-white rounded-2xl border px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div>
             <h2 className="text-2xl font-extrabold tracking-tight text-gray-900">
               Elección Presidencial <span className="text-red-500">(ME-02)</span>
@@ -447,13 +469,67 @@ export default function VotingBallot() {
           </div>
         </div>
 
+        {/* US-SE-M3-06: toggle de modo voto alternativo (ME-04) */}
+        <div className="bg-white border rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+              <ListOrdered size={16} className="text-red-500" />
+            </div>
+            <div>
+              <p className="font-bold text-gray-800 text-sm">
+                {modoAlternativo ? "Voto Alternativo activo (ME-04)" : "Voto único"}
+              </p>
+              <p className="text-xs text-gray-500 leading-snug">
+                {modoAlternativo
+                  ? "Toque a los candidatos en orden de preferencia (1°, 2°, 3°...). No repita números. Puede dejarlo incompleto, pero se le advertirá del riesgo de voto agotado."
+                  : "Seleccione un único candidato o el voto en blanco. Cambie a Voto Alternativo para ordenar candidatos por preferencia."}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {modoAlternativo && candidatosRankeados > 0 && (
+              <button
+                onClick={limpiarRanking}
+                className="flex items-center gap-1 border rounded-lg px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition"
+              >
+                <RotateCcw size={12} /> Limpiar
+              </button>
+            )}
+            <button
+              onClick={() => cambiarModo(!modoAlternativo)}
+              className={`text-xs font-bold uppercase tracking-wide px-4 py-2 rounded-lg transition ${
+                modoAlternativo
+                  ? "bg-gray-800 text-white hover:bg-gray-900"
+                  : "bg-red-500 text-white hover:bg-red-600"
+              }`}
+            >
+              {modoAlternativo ? "Volver a voto único" : "Activar voto alternativo"}
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {CANDIDATES.map((c) => (
-            <CandidateCard key={c.id} candidate={c}
-              selected={selected === c.id}
-              onSelect={() => setSelected(c.id)} />
-          ))}
-          <BlankVoteCard selected={selected === "blank"} onSelect={() => setSelected("blank")} />
+          {CANDIDATES.map((c) => {
+            const rank = modoAlternativo ? ranking[c.id] : undefined
+            const isSel = modoAlternativo ? !!rank : selected === c.id
+            return (
+              <CandidateCard
+                key={c.id}
+                candidate={c}
+                selected={isSel}
+                rank={rank}
+                onSelect={() =>
+                  modoAlternativo ? toggleRanking(c.id) : setSelected(c.id)
+                }
+              />
+            )
+          })}
+          {!modoAlternativo && (
+            <BlankVoteCard
+              selected={selected === "blank"}
+              onSelect={() => setSelected("blank")}
+            />
+          )}
         </div>
 
         <div className="bg-white border rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -462,7 +538,28 @@ export default function VotingBallot() {
               <AlertCircle size={16} className="text-red-500" />
             </div>
             <div>
-              {selected ? (
+              {modoAlternativo ? (
+                candidatosRankeados > 0 ? (
+                  <>
+                    <p className="font-bold text-gray-800 text-sm">
+                      Preferencias: <span className="text-red-500">{candidatosRankeados}/{CANDIDATES.length}</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {Object.entries(ranking)
+                        .sort((a, b) => a[1] - b[1])
+                        .map(([id, n]) => {
+                          const cand = CANDIDATES.find((c) => c.id === id)
+                          return `${n}° ${cand?.name ?? id}`
+                        })
+                        .join(" · ")}
+                    </p>
+                  </>
+                ) : (
+                  <p className="font-bold text-gray-800 text-sm">
+                    Toque a los candidatos en orden de preferencia para activar el ranking.
+                  </p>
+                )
+              ) : selected ? (
                 <>
                   <p className="font-bold text-gray-800 text-sm">
                     Ha seleccionado: <span className="text-red-500">{selectionLabel}</span>
@@ -482,7 +579,6 @@ export default function VotingBallot() {
             </div>
           </div>
 
-          {/* US-01: botón siempre habilitado — el diálogo maneja el caso sin marca */}
           <button
             onClick={handleRevisar}
             className="shrink-0 flex items-center gap-2 bg-red-500 hover:bg-red-600 transition-colors text-white font-bold uppercase tracking-wide text-sm px-6 py-3 rounded-xl"

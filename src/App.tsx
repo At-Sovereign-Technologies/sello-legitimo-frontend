@@ -3,6 +3,9 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import AccessibilityButtons from "./components/AccesibilityButtons";
 import Tarjeton from "./pages/Tarjeton";
+import ConfirmacionVoto from "./pages/ConfirmacionVoto";
+import ComprobanteVoto from "./pages/ComprobanteVoto";
+import EmisionRemotaSetup from "./pages/EmisionRemotaSetup";
 import Busqueda from "./pages/Busqueda";
 import ConsultaCiudadano from "./pages/ConsultaCiudadano";
 import Resultados from "./pages/Resultados";
@@ -54,6 +57,9 @@ function App() {
                 <Route path="/mock-login" element={<MockLogin />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/tarjeton" element={<Tarjeton />} />
+                <Route path="/votar-remoto" element={<EmisionRemotaSetup />} />
+                <Route path="/confirmacion-voto" element={<ConfirmacionVoto />} />
+                <Route path="/comprobante-voto/:numero" element={<ComprobanteVoto />} />
                 <Route path="/landing" element={<Landing />} />
                 <Route path="/busqueda" element={<Busqueda />} />
                 <Route
