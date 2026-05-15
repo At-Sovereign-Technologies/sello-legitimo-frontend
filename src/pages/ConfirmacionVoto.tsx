@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, AlertCircle, Loader2, ListOrdered } from "lucide-react";
+import { ArrowLeft, CheckCircle2, AlertCircle, Loader2, ListOrdered, Accessibility } from "lucide-react";
 import { emitirPresencial, emitirRemoto } from "../api/emision.api";
 import type {
     EmisionVoto,
@@ -26,6 +26,7 @@ type LocationState = {
     modoAlternativo: boolean;
     rankingIncompleto?: boolean;
     rankingIncompletoConfirmado?: boolean;
+    tokenAsistencia?: string;
 };
 
 export default function ConfirmacionVoto() {
@@ -45,6 +46,7 @@ export default function ConfirmacionVoto() {
             handshakeId: state.handshakeId ?? null,
             preferencias: state.enBlanco ? {} : state.preferencias,
             enBlanco: state.enBlanco,
+            tokenAsistencia: state.tokenAsistencia ?? null,
         };
     }, [state]);
 
@@ -170,6 +172,18 @@ export default function ConfirmacionVoto() {
                             </p>
                         </div>
                     </div>
+
+                    {state.tokenAsistencia && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2 flex items-center gap-2 mb-3 text-xs text-blue-700">
+                            <Accessibility size={14} />
+                            <span className="font-semibold">
+                                Voto asistido (SE-M3-05)
+                            </span>
+                            <span className="ml-auto text-blue-600">
+                                Sesión vinculada a registro de acompañante
+                            </span>
+                        </div>
+                    )}
 
                     {state.modoAlternativo && (
                         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-2 flex items-center gap-2 mb-4 text-xs text-red-700">

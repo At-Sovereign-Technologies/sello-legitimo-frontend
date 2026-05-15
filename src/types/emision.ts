@@ -10,6 +10,8 @@ export interface EmisionVoto {
     handshakeId?: string | null;
     preferencias: Record<string, number>;
     enBlanco: boolean;
+    // SE-M3-05: token de sesión asistida (firmado RSA-PSS por el backend).
+    tokenAsistencia?: string | null;
 }
 
 export interface ComprobanteVoto {
@@ -21,6 +23,10 @@ export interface ComprobanteVoto {
     firmaDigital: string;
     vvpatBase64?: string | null;
     emailDestino?: string | null;
+    // SE-M3-05: marca el voto como asistido. RegistroAsistenciaId es la
+    // referencia anonima al registro (no expone documentos).
+    votoAsistido?: boolean;
+    registroAsistenciaId?: string | null;
 }
 
 export interface EmisionVotoRemotoRequest {

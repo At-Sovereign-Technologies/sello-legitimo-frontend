@@ -6,6 +6,7 @@ import Tarjeton from "./pages/Tarjeton";
 import ConfirmacionVoto from "./pages/ConfirmacionVoto";
 import ComprobanteVoto from "./pages/ComprobanteVoto";
 import EmisionRemotaSetup from "./pages/EmisionRemotaSetup";
+import AsistenciaJurado from "./pages/AsistenciaJurado";
 import Busqueda from "./pages/Busqueda";
 import ConsultaCiudadano from "./pages/ConsultaCiudadano";
 import Resultados from "./pages/Resultados";
@@ -58,6 +59,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/tarjeton" element={<Tarjeton />} />
                 <Route path="/votar-remoto" element={<EmisionRemotaSetup />} />
+                <Route path="/jurado/asistencia" element={<AsistenciaJurado />} />
                 <Route path="/confirmacion-voto" element={<ConfirmacionVoto />} />
                 <Route path="/comprobante-voto/:numero" element={<ComprobanteVoto />} />
                 <Route path="/landing" element={<Landing />} />
