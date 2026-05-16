@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import { BarChart3, PenLine } from "lucide-react"
+import { BarChart3, PenLine, ShieldCheck } from "lucide-react"
 
 export default function Hero() {
   const navigate = useNavigate()
@@ -18,10 +18,18 @@ export default function Hero() {
         seguras e inclusivas en todo el territorio nacional.
       </p>
 
-      <div className="mt-8 flex gap-4">
+      <div className="mt-8 flex flex-wrap gap-4">
+        <button
+          onClick={() => navigate("/votar-remoto")}
+          className="flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition"
+        >
+          <ShieldCheck size={18} />
+          Votar Remotamente
+        </button>
+
         <button
           onClick={() => navigate("/consulta-ciudadano")}
-          className="flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition"
+          className="flex items-center gap-2 border px-6 py-3 rounded-lg hover:bg-gray-100 transition"
         >
           <PenLine size={18} />
           Consultar mi Voto

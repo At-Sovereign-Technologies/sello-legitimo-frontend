@@ -1,18 +1,15 @@
 // SE-M3-02 — Consulta del enrolamiento del votante remoto.
 //
+// El votanteId se toma del JWT de sesión (servicio de auth real ya existente
+// en el proyecto). La consulta al enrolamiento sigue siendo MOCK hasta que
+// GestionPreElectoral-service exponga el endpoint REST.
+//
 // CONTRATO REAL (cuando esté integrado):
 //   GET {SR-M3}/api/v1/lista-blanca/ciudadano/{ciudadanoId}
-//   Headers: Authorization Bearer <token de sesión del módulo de auth>
-//   Respuesta 200: DatosEnrolamientoRemoto
-//   Respuesta 403: el ciudadano NO está en la lista blanca (no se enroló)
-//   Respuesta 401: el token de sesión es inválido / expiró
-//
-// IMPLEMENTACIÓN ACTUAL (mock): devuelve datos simulados según el ciudadanoId.
-// El switch al endpoint real se hace cuando:
-//   1. GestionPreElectoral-service exponga la consulta por ciudadanoId.
-//   2. El módulo de auth devuelva un ciudadanoId verificable a este componente.
-// Mientras tanto, este mock permite demostrar la UX correcta:
-// los datos críticos (email + circunscripción) NO los edita el usuario.
+//   Headers: Authorization: Bearer <jwt>
+//   200: DatosEnrolamientoRemoto
+//   403: no enrolado en lista blanca
+//   401: token inválido / expirado
 
 import type { DatosEnrolamientoRemoto } from "../types/enrolamientoRemoto";
 
@@ -49,15 +46,13 @@ const MOCK_ENROLADOS: Record<string, DatosEnrolamientoRemoto> = {
     },
 };
 
-// Default visible para demo: el primer ciudadano habilitado.
-// Cuando el módulo de auth esté integrado, este "id por defecto" se reemplaza
-// por el ciudadanoId del contexto de sesión.
+// Fallback para sesiones de demo cuando el JWT no trae ciudadanoId resoluble.
 export const CIUDADANO_DEMO_DEFAULT = "ciudadano_demo_001";
 
 export async function consultarEnrolamientoRemoto(
     ciudadanoId: string
 ): Promise<DatosEnrolamientoRemoto> {
-    // Simulamos latencia leve para que la UI muestre estado de carga.
+    // Latencia simulada para que la UI muestre estado de carga.
     await new Promise((r) => setTimeout(r, 250));
 
     const datos = MOCK_ENROLADOS[ciudadanoId];
