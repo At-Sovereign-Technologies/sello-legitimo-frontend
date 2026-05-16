@@ -58,7 +58,6 @@ function App() {
                 <Route path="/mock-login" element={<MockLogin />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/tarjeton" element={<Tarjeton />} />
-                <Route path="/votar-remoto" element={<EmisionRemotaSetup />} />
                 <Route path="/jurado/asistencia" element={<AsistenciaJurado />} />
                 <Route path="/confirmacion-voto" element={<ConfirmacionVoto />} />
                 <Route path="/comprobante-voto/:numero" element={<ComprobanteVoto />} />
@@ -105,6 +104,9 @@ function App() {
                         element={<AperturaMesa />}
                     />
                     <Route path="/perfil" element={<ProfilePage />} />
+                    {/* SE-M3-02: solo accesible para usuarios autenticados.
+                        Si no hay sesión, ProtectedRoute redirige a /login. */}
+                    <Route path="/votar-remoto" element={<EmisionRemotaSetup />} />
                 </Route>
                 <Route path="/publicacion/participacion" element={<ParticipacionEnVivoPage />} />
                 <Route path="/publicacion/resultados" element={<ResultadosParcialPage />} />

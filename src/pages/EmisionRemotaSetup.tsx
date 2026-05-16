@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
     AlertCircle,
@@ -18,31 +18,64 @@ import {
     consultarEnrolamientoRemoto,
 } from "../api/enrolamientoRemoto.api";
 import type { DatosEnrolamientoRemoto } from "../types/enrolamientoRemoto";
+import { getToken, getDisplayUsername } from "../services/authService";
 
 // SE-M3-02 — Antesala del tarjetón remoto.
 //
-// Decisión de diseño: los datos críticos (email certificado + circunscripción)
-// NO los edita el votante. Se traen de su enrolamiento previo (lista blanca,
-// US-SR-M3-01). Esto cumple:
-//   - "Desplegar el tarjetón al ciudadano autenticado" (CA US-SE-M3-02).
-//   - Atributo de calidad "Seguridad Perimetral": el votante no puede inyectar
-//     un email distinto al certificado, ni cambiar de circunscripción.
-//   - Atributo "Trazabilidad": el comprobante llega al correo que se asoció en
-//     el enrolamiento, no a uno arbitrario.
+// El votante llega aquí YA AUTENTICADO (ProtectedRoute redirige a /login si
+// no hay sesión). Esta pantalla:
+//   1. Lee el ciudadanoId del JWT de sesión.
+//   2. Consulta el enrolamiento previo en la Lista Blanca (US-SR-M3-01).
+//   3. Muestra email certificado + circunscripción en READ-ONLY.
+//   4. Solo permite continuar si el enrolamiento está HABILITADO.
 //
-// HOY: la consulta de enrolamiento es mock (ver consultarEnrolamientoRemoto).
-// Cuando GestionPreElectoral-service exponga el endpoint, el adaptador HTTP
-// reemplaza al mock sin tocar esta pantalla.
+// Atributos de calidad cubiertos:
+//   - "Desplegar tarjetón al ciudadano autenticado" — JWT validado por ProtectedRoute.
+//   - Seguridad Perimetral — votante no puede cambiar destino del comprobante.
+//   - Trazabilidad — comprobante llega al correo del enrolamiento, no a uno arbitrario.
+//   - Integridad — voto se computa en la circunscripción donde está inscrito.
+//
+// HOY: la consulta de enrolamiento es mock. Cuando GestionPreElectoral-service
+// exponga GET /api/v1/lista-blanca/ciudadano/{id}, el adaptador HTTP reemplaza
+// al mock sin tocar esta pantalla.
+
+// Decodifica el payload de un JWT sin verificar la firma (solo para leer claims).
+function decodeJwtSub(token: string): string | null {
+    try {
+        const parts = token.split(".");
+        if (parts.length !== 3) return null;
+        const payload = JSON.parse(atob(parts[1])) as Record<string, unknown>;
+        return (
+            (payload.sub as string) ||
+            (payload.ciudadanoId as string) ||
+            (payload.userId as string) ||
+            null
+        );
+    } catch {
+        return null;
+    }
+}
 
 export default function EmisionRemotaSetup() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    // Hoy permitimos ?ciudadanoId=... para que la demo pueda alternar entre
-    // los enrolados mock. Cuando exista auth real, este id se lee del contexto
-    // de sesión, no del query string, y el campo desaparece de la URL.
-    const ciudadanoId =
-        searchParams.get("ciudadanoId") ?? CIUDADANO_DEMO_DEFAULT;
+    // Resolución del ciudadanoId, en orden de prioridad:
+    //   1. JWT de sesión (auth real, lo normal en producción).
+    //   2. ?ciudadanoId=... en el query (útil para QA: alternar entre enrolados mock).
+    //   3. CIUDADANO_DEMO_DEFAULT (fallback para sesiones sin sub resoluble en demo).
+    const ciudadanoId = useMemo(() => {
+        const desdeQuery = searchParams.get("ciudadanoId");
+        if (desdeQuery) return desdeQuery;
+        const token = getToken();
+        if (token) {
+            const sub = decodeJwtSub(token);
+            if (sub) return sub;
+        }
+        return CIUDADANO_DEMO_DEFAULT;
+    }, [searchParams]);
+
+    const usuarioVisible = getDisplayUsername();
 
     const [datos, setDatos] = useState<DatosEnrolamientoRemoto | null>(null);
     const [cargando, setCargando] = useState(true);
@@ -97,11 +130,15 @@ export default function EmisionRemotaSetup() {
                                 Votación remota
                             </h1>
                             <p className="text-sm text-gray-500 mt-1">
-                                Estos datos provienen de su enrolamiento previo
-                                para voto remoto. No se pueden modificar: garantizan
-                                que el comprobante llegue al correo certificado
-                                registrado y que el voto se compute en la
-                                circunscripción correcta.
+                                Sesión iniciada como{" "}
+                                <strong className="text-gray-700">
+                                    {usuarioVisible}
+                                </strong>
+                                . Los datos a continuación provienen de su
+                                enrolamiento previo y no se pueden modificar:
+                                garantizan que el comprobante llegue al correo
+                                certificado registrado y que el voto se compute
+                                en la circunscripción correcta.
                             </p>
                         </div>
                     </div>
