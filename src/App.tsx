@@ -100,7 +100,7 @@ function App() {
                                 path={route.path}
                                 element={route.element}
                             />
-                        )}
+                        ))}
                         <Route path="/parametros-base" element={<ParametrosBase />} />
                         <Route path="/metodo-electoral" element={<MetodoElectoralReglas />} />
                         <Route path="/circunscripciones" element={<CircunscripcionesElegibilidad />} />
