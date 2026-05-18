@@ -794,7 +794,10 @@ function CaseList({
     }, [filterEstado, filterPrioridad, filterTipologia, filterEntidad, page])
 
     useEffect(() => {
-        fetchCases()
+        const initialize = async () => {
+            await fetchCases()
+        }
+        initialize()
     }, [fetchCases])
 
     // Reset page cuando cambian filtros

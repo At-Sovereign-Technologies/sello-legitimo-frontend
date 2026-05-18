@@ -220,11 +220,17 @@ export default function ControlAsistencia() {
     const pendientes = juradosDeEleccion.length - asistenciasDeEleccion.length;
 
     useEffect(() => {
-        void cargarDatos();
-        listarElecciones()
-            .then(setElecciones)
-            .catch(() => setElecciones([]));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const initialize = async () => {
+            await cargarDatos();
+            try {
+                const elecciones = await listarElecciones();
+                setElecciones(elecciones);
+            } catch {
+                setElecciones([]);
+            }
+        };
+
+        void initialize();
     }, []);
 
     return (

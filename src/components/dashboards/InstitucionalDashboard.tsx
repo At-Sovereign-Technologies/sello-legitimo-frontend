@@ -1,5 +1,5 @@
 import React from "react";
-import type { MockRole } from "../../contexts/MockAuthContext";
+import type { MockRole } from "../../contexts/mock-auth-context";
 import {
     BarChart,
     Bar,
@@ -10,8 +10,15 @@ import {
     ResponsiveContainer,
 } from "recharts";
 
+interface InstitucionalData {
+    resultadosConsolidados?: Record<string, number>;
+    casosFraudeInvestigacion?: string[];
+    alertasAnomaliasTrafico?: number;
+    mesasActasPendientes?: number;
+}
+
 interface Props {
-    data: any;
+    data: InstitucionalData;
     role: MockRole;
 }
 
@@ -132,10 +139,9 @@ const InstitucionalDashboard: React.FC<Props> = ({ data, role }) => {
                                             }
                                         />
                                         <Tooltip
-                                            formatter={(value: any) => [
-                                                Number(value).toLocaleString(),
-                                                "Votos",
-                                            ]}
+                                            formatter={(value) =>
+                                                Number(value ?? 0).toLocaleString()
+                                            }
                                             labelFormatter={(label) =>
                                                 chartData.find(
                                                     (d) => d.name === label,

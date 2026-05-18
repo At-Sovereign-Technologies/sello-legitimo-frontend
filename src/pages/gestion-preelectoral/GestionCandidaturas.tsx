@@ -206,7 +206,6 @@ export default function GestionCandidaturas() {
 
     useEffect(() => {
         void cargarCandidaturas();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [eleccionId]);
 
     useEffect(() => {
@@ -218,7 +217,6 @@ export default function GestionCandidaturas() {
                 }
             })
             .catch(() => setElecciones([]));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const candidaturasFiltradas = candidaturas.filter((c) => {
@@ -931,8 +929,7 @@ export default function GestionCandidaturas() {
                                         nombreCandidato: e.target.value,
                                     }));
                                     setFormErrors((prev) => {
-                                        const { nombreCandidato, ...rest } =
-                                            prev;
+                                        const { nombreCandidato: _, ...rest } = prev;
                                         return rest;
                                     });
                                 }}
@@ -958,7 +955,7 @@ export default function GestionCandidaturas() {
                                         documento: e.target.value,
                                     }));
                                     setFormErrors((prev) => {
-                                        const { documento, ...rest } = prev;
+                                        const { documento: _, ...rest } = prev;
                                         return rest;
                                     });
                                 }}
@@ -983,7 +980,7 @@ export default function GestionCandidaturas() {
                                         partido: e.target.value,
                                     }));
                                     setFormErrors((prev) => {
-                                        const { partido, ...rest } = prev;
+                                        const { partido: _, ...rest } = prev;
                                         return rest;
                                     });
                                 }}
@@ -1008,8 +1005,7 @@ export default function GestionCandidaturas() {
                                         circunscripcion: e.target.value,
                                     }));
                                     setFormErrors((prev) => {
-                                        const { circunscripcion, ...rest } =
-                                            prev;
+                                        const { circunscripcion: _, ...rest } = prev;
                                         return rest;
                                     });
                                 }}

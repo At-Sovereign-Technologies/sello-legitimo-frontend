@@ -312,8 +312,7 @@ export default function SorteoJurados() {
                                                 ),
                                             }));
                                             setFormErrors((errs) => {
-                                                const { eleccionId, ...rest } =
-                                                    errs;
+                                                const { eleccionId: _, ...rest } = errs;
                                                 return rest;
                                             });
                                         }}
@@ -345,10 +344,7 @@ export default function SorteoJurados() {
                                                 departamento: e.target.value,
                                             }));
                                             setFormErrors((errs) => {
-                                                const {
-                                                    departamento,
-                                                    ...rest
-                                                } = errs;
+                                                const { departamento: _, ...rest } = errs;
                                                 return rest;
                                             });
                                         }}
@@ -373,8 +369,7 @@ export default function SorteoJurados() {
                                                 municipio: e.target.value,
                                             }));
                                             setFormErrors((errs) => {
-                                                const { municipio, ...rest } =
-                                                    errs;
+                                                const { municipio: _, ...rest } = errs;
                                                 return rest;
                                             });
                                         }}
@@ -402,8 +397,7 @@ export default function SorteoJurados() {
                                                 ),
                                             }));
                                             setFormErrors((errs) => {
-                                                const { numeroMesas, ...rest } =
-                                                    errs;
+                                                const { numeroMesas: _, ...rest } = errs;
                                                 return rest;
                                             });
                                         }}
@@ -431,10 +425,7 @@ export default function SorteoJurados() {
                                                 ),
                                             }));
                                             setFormErrors((errs) => {
-                                                const {
-                                                    juradosPorMesa,
-                                                    ...rest
-                                                } = errs;
+                                                const { juradosPorMesa: _, ...rest } = errs;
                                                 return rest;
                                             });
                                         }}

@@ -8,8 +8,16 @@ import {
     Legend,
 } from "recharts";
 
+interface MesaBajoCobertura {
+    mesa?: string;
+    estado?: string;
+}
+
 interface Props {
-    data: any;
+    data: {
+        conteoVotosPartido?: number;
+        mesasBajoCobertura?: MesaBajoCobertura[];
+    };
 }
 
 const COLORS = ["#10b981", "#f59e0b", "#3b82f6", "#8b5cf6"];
@@ -19,10 +27,14 @@ const TestigoDashboard: React.FC<Props> = ({ data }) => {
         if (!data?.mesasBajoCobertura) return [];
 
         // Contar cuántas mesas hay de cada estatus
-        const counts = data.mesasBajoCobertura.reduce((acc: any, curr: any) => {
-            acc[curr.estado] = (acc[curr.estado] || 0) + 1;
-            return acc;
-        }, {});
+        const counts = data.mesasBajoCobertura.reduce<Record<string, number>>(
+            (acc, curr) => {
+                const status = curr.estado ?? "Desconocido";
+                acc[status] = (acc[status] || 0) + 1;
+                return acc;
+            },
+            {},
+        );
 
         return Object.entries(counts).map(([name, value]) => ({
             name,
@@ -97,7 +109,7 @@ const TestigoDashboard: React.FC<Props> = ({ data }) => {
                             </thead>
                             <tbody>
                                 {data.mesasBajoCobertura?.map(
-                                    (item: any, idx: number) => (
+                                    (item, idx: number) => (
                                         <tr
                                             key={idx}
                                             className="border-b border-gray-50 hover:bg-gray-50"

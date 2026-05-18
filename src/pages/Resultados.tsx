@@ -185,7 +185,12 @@ function TabHistorico() {
     } finally { setLoading(false) }
   }
 
-  useEffect(() => { fetch() }, [])
+  useEffect(() => {
+    const initialize = async () => {
+      await fetch()
+    }
+    initialize()
+  }, [])
 
   const typeColor: Record<string, string> = {
     PRESIDENTIAL: "bg-purple-100 text-purple-700",
@@ -385,7 +390,12 @@ function TabTendencias() {
     finally { setLoading(false) }
   }
 
-  useEffect(() => { fetch() }, [])
+  useEffect(() => {
+    const initialize = async () => {
+      await fetch()
+    }
+    initialize()
+  }, [])
 
   const maxVotes = data ? Math.max(...data.totalVotesPerElection) : 1
 

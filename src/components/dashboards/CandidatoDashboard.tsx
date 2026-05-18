@@ -9,13 +9,26 @@ import {
     ResponsiveContainer,
 } from "recharts";
 
+interface DashboardData {
+    votosPropiosPorMesa?: Record<string, number>;
+    estadoCandidatura?: string;
+    porcentajeMesasReportadas?: number;
+    alertasReclamacionesActivas?: boolean;
+}
+
 interface Props {
-    data: any;
+    data: DashboardData;
+}
+
+interface ChartItem {
+    name: string;
+    fullName: string;
+    votos: number;
 }
 
 const CandidatoDashboard: React.FC<Props> = ({ data }) => {
     // Transform object to array for recharts
-    const chartData = data.votosPropiosPorMesa
+    const chartData: ChartItem[] = data.votosPropiosPorMesa
         ? Object.entries(data.votosPropiosPorMesa).map(([name, value]) => ({
               name: name.split(" - ")[0], // Abreviar el nombre para el gráfico
               fullName: name,
@@ -78,10 +91,9 @@ const CandidatoDashboard: React.FC<Props> = ({ data }) => {
                                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                                 <YAxis />
                                 <Tooltip
-                                    formatter={(value: any) => [
-                                        `${value} votos`,
-                                        "Votos",
-                                    ]}
+                                    formatter={(value) =>
+                                        `${value ?? 0} votos`
+                                    }
                                     labelFormatter={(label) =>
                                         chartData.find((d) => d.name === label)
                                             ?.fullName || label

@@ -1,7 +1,16 @@
 import React from "react";
 
+interface ActaDigital {
+    id: number | string;
+    hashSha256?: string;
+    estado?: string;
+}
+
 interface Props {
-    data: any;
+    data: {
+        alertasFraudeFRA?: string[];
+        actasDigitales?: ActaDigital[];
+    };
 }
 
 const AuditorDashboard: React.FC<Props> = ({ data }) => {
@@ -41,7 +50,7 @@ const AuditorDashboard: React.FC<Props> = ({ data }) => {
                             </tr>
                         </thead>
                         <tbody className="font-mono text-xs">
-                            {data.actasDigitales?.map((acta: any) => (
+                            {data.actasDigitales?.map((acta) => (
                                 <tr
                                     key={acta.id}
                                     className="border-b border-gray-50"
@@ -57,7 +66,7 @@ const AuditorDashboard: React.FC<Props> = ({ data }) => {
                                     </td>
                                     <td className="px-4 py-3">
                                         <span
-                                            className={`px-2 py-1 rounded-full text-xs font-semibold ${acta.estado.includes("FIRMADA") ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}
+                                            className={`px-2 py-1 rounded-full text-xs font-semibold ${acta.estado?.includes("FIRMADA") ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}
                                         >
                                             {acta.estado}
                                         </span>

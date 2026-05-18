@@ -1,30 +1,8 @@
-import {
-    createContext,
-    useContext,
-    useState,
-    useEffect,
-} from "react";
+import { useState, useEffect } from "react";
 
 import type { ReactNode } from "react";
-
-export type MockRole =
-    | "CANDIDATO"
-    | "TESTIGO"
-    | "AUDITOR"
-    | "DELEGADO_CNE"
-    | "FISCALIA"
-    | "ADMIN_RNEC"
-    | null;
-
-interface MockAuthContextType {
-    role: MockRole;
-    setRole: (role: MockRole) => void;
-    logout: () => void;
-}
-
-const MockAuthContext = createContext<MockAuthContextType | undefined>(
-    undefined,
-);
+import type { MockRole } from "./mock-auth-context";
+import { MockAuthContext } from "./mock-auth-context";
 
 export const MockAuthProvider = ({ children }: { children: ReactNode }) => {
     const [role, setRole] = useState<MockRole>(() => {
@@ -46,12 +24,4 @@ export const MockAuthProvider = ({ children }: { children: ReactNode }) => {
             {children}
         </MockAuthContext.Provider>
     );
-};
-
-export const useMockAuth = () => {
-    const context = useContext(MockAuthContext);
-    if (context === undefined) {
-        throw new Error("useMockAuth must be used within a MockAuthProvider");
-    }
-    return context;
 };

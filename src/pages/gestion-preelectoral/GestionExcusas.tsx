@@ -727,7 +727,7 @@ export default function GestionExcusas() {
                                 onChange={(e) => {
                                     setMotivoExcusa(e.target.value);
                                     setFormErrors((errs) => {
-                                        const { motivo, ...rest } = errs;
+                                        const { motivo: _, ...rest } = errs;
                                         return rest;
                                     });
                                 }}

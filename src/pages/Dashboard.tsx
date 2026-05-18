@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMockAuth } from "../contexts/MockAuthContext";
+import { useMockAuth } from "../hooks/useMockAuth";
 import { getDashboardResumen } from "../api/dashboard.api";
 import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
@@ -10,10 +10,29 @@ import TestigoDashboard from "../components/dashboards/TestigoDashboard";
 import AuditorDashboard from "../components/dashboards/AuditorDashboard";
 import InstitucionalDashboard from "../components/dashboards/InstitucionalDashboard";
 
+type DashboardResumen = {
+    votosPropiosPorMesa?: Record<string, number>;
+    estadoCandidatura?: string;
+    porcentajeMesasReportadas?: number;
+    alertasReclamacionesActivas?: boolean;
+    resultadosConsolidados?: Record<string, number>;
+    casosFraudeInvestigacion?: string[];
+    alertasAnomaliasTrafico?: number;
+    mesasActasPendientes?: number;
+    conteoVotosPartido?: number;
+    mesasBajoCobertura?: Array<{ mesa?: string; estado?: string }>;
+    alertasFraudeFRA?: string[];
+    actasDigitales?: Array<{
+        id: number | string;
+        hashSha256?: string;
+        estado?: string;
+    }>;
+};
+
 const Dashboard: React.FC = () => {
     const { role, logout } = useMockAuth();
     const navigate = useNavigate();
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<DashboardResumen | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -31,11 +50,13 @@ const Dashboard: React.FC = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const result = await getDashboardResumen();
+                const result = (await getDashboardResumen()) as DashboardResumen;
                 setData(result);
-            } catch (err: any) {
+            } catch (err) {
                 setError(
-                    err.message || "Error al cargar los datos del dashboard",
+                    err instanceof Error
+                        ? err.message
+                        : "Error al cargar los datos del dashboard",
                 );
             } finally {
                 setLoading(false);

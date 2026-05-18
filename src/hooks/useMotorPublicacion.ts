@@ -160,9 +160,11 @@ export function useMotorPublicacion() {
 
     // ── Polling setup + visibility handling ────────────────────────────────────
     useEffect(() => {
-        // Initial fetches
-        fetchParticipacion();
-        fetchEstado();
+        async function initialize() {
+            await fetchParticipacion();
+            await fetchEstado();
+            startPolling();
+        }
 
         function startPolling() {
             // Clear any existing intervals before starting new ones
@@ -205,7 +207,7 @@ export function useMotorPublicacion() {
             }
         }
 
-        startPolling();
+        initialize();
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
         return () => {

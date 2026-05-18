@@ -10,43 +10,46 @@ export default function Callback() {
     const processed = useRef(false);
 
     useEffect(() => {
-        if (processed.current) return;
-        processed.current = true;
+        const initialize = async () => {
+            if (processed.current) return;
+            processed.current = true;
 
-        const code = searchParams.get("code");
-        const state = searchParams.get("state");
-        const errorParam = searchParams.get("error");
+            const code = searchParams.get("code");
+            const state = searchParams.get("state");
+            const errorParam = searchParams.get("error");
 
-        if (errorParam) {
-            const description =
-                searchParams.get("error_description") ?? errorParam;
-            debugLog("callback", "Authelia devolvio error en callback", {
-                error: errorParam,
-            });
-            setError(`Error de autenticación: ${description}`);
-            return;
-        }
+            if (errorParam) {
+                const description =
+                    searchParams.get("error_description") ?? errorParam;
+                debugLog("callback", "Authelia devolvio error en callback", {
+                    error: errorParam,
+                });
+                setError(`Error de autenticación: ${description}`);
+                return;
+            }
 
-        if (!code || !state) {
-            setError(
-                "Respuesta de autenticación inválida. Vuelve a iniciar sesión.",
-            );
-            return;
-        }
+            if (!code || !state) {
+                setError(
+                    "Respuesta de autenticación inválida. Vuelve a iniciar sesión.",
+                );
+                return;
+            }
 
-        handleOidcCallback(code, state)
-            .then(() => {
+            try {
+                await handleOidcCallback(code, state);
                 debugLog("callback", "Sesion iniciada, redirigiendo a inicio");
                 navigate("/", { replace: true });
-            })
-            .catch((err: unknown) => {
+            } catch (err: unknown) {
                 const message =
                     err instanceof Error
                         ? err.message
                         : "No se pudo completar el inicio de sesión.";
                 debugLog("callback", "Error al procesar callback", { message });
                 setError(message);
-            });
+            }
+        };
+
+        void initialize();
     }, [navigate, searchParams]);
 
     if (error) {

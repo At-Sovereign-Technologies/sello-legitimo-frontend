@@ -60,7 +60,10 @@ export default function Elecciones() {
     }
 
     useEffect(() => {
-        fetchElections()
+        const initialize = async () => {
+            await fetchElections()
+        }
+        initialize()
     }, [])
 
     const filtered = elections.filter((e) => {

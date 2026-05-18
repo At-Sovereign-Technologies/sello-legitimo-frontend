@@ -154,18 +154,19 @@ function RuleForm({
     const [showEditWarning, setShowEditWarning] = useState(false)
 
     // Al cambiar el tipo de regla, resetear parameters
-    useEffect(() => {
+    const updateRuleType = (newType: RuleType) => {
+        setRuleType(newType)
+
         if (!isEdit) {
-            const fields = paramFieldsByType[ruleType]
+            const fields = paramFieldsByType[newType]
             const newParams: Record<string, number> = {}
             fields.forEach((f) => {
                 newParams[f.key] = f.type === "decimal" ? 1.5 : 1
             })
             setParameters(newParams)
-            // Derivar alertType del ruleType
-            setAlertType(ruleType)
+            setAlertType(newType)
         }
-    }, [ruleType, isEdit])
+    }
 
     const validate = (): boolean => {
         const newErrors: Record<string, string> = {}
@@ -258,7 +259,7 @@ function RuleForm({
                         <div className="relative">
                             <select
                                 value={ruleType}
-                                onChange={(e) => setRuleType(e.target.value as RuleType)}
+                                onChange={(e) => updateRuleType(e.target.value as RuleType)}
                                 className="w-full border rounded-lg px-3 py-2.5 text-sm text-gray-700 outline-none cursor-pointer appearance-none bg-white focus:ring-2 focus:ring-red-200 transition"
                             >
                                 {Object.entries(ruleTypeLabels).map(([value, label]) => (
@@ -506,7 +507,10 @@ export default function GestionReglas() {
     }
 
     useEffect(() => {
-        fetchRules()
+        const initialize = async () => {
+            await fetchRules()
+        }
+        initialize()
     }, [])
 
     const handleViewDetail = async (id: number) => {

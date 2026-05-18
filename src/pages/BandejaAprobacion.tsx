@@ -228,7 +228,10 @@ export default function BandejaAprobacion() {
     }
 
     useEffect(() => {
-        fetchRules()
+        const initialize = async () => {
+            await fetchRules()
+        }
+        initialize()
     }, [])
 
     const handleApprove = async () => {

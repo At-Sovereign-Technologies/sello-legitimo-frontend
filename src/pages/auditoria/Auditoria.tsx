@@ -16,10 +16,6 @@ export default function Auditoria() {
 
     const pageSize = 20;
 
-    useEffect(() => {
-        loadAuditLog();
-    }, [currentPage]);
-
     const loadAuditLog = async () => {
         setLoading(true);
         try {
@@ -32,6 +28,13 @@ export default function Auditoria() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const initialize = async () => {
+            await loadAuditLog();
+        };
+        initialize();
+    }, [currentPage]);
 
     const handleVerifyChain = async () => {
         setVerifyingChain(true);

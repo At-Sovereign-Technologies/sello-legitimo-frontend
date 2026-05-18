@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useMockAuth } from "../contexts/MockAuthContext";
-import type { MockRole } from "../contexts/MockAuthContext";
+import { useMockAuth } from "../hooks/useMockAuth";
+import type { MockRole } from "../contexts/mock-auth-context";
 import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 
