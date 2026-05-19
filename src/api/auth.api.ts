@@ -9,7 +9,7 @@ const API_URL =
 
 // ---- Exportaciones heredadas (usadas por otros módulos) ----
 
-const DEFAULT_GATEWAY_URL = "https://preeleccion.sello-legitimo.site:8091";
+const DEFAULT_GATEWAY_URL = "";
 
 function normalizeBaseUrl(url: string): string {
     return url.replace(/\/+$/, "");
