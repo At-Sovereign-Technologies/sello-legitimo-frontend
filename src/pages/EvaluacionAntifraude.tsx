@@ -77,7 +77,11 @@ function RiskScoreGauge({ score }: { score: number }) {
     )
 }
 
-// -- Datos de ejemplo para el formulario --
+function ts(offsetMs: number = 0): string {
+    const d = new Date(Date.now() - offsetMs)
+    const pad = (n: number) => String(n).padStart(2, "0")
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
 
 const defaultRequest: EvaluateRequest = {
     eventoActual: {
@@ -87,7 +91,7 @@ const defaultRequest: EvaluateRequest = {
         tipo: "AUTENTICACION",
         exitoso: false,
         coincidenciaBiometrica: false,
-        timestamp: new Date().toISOString(),
+        timestamp: ts(),
     },
     eventosHistoricos: [
         {
@@ -97,7 +101,7 @@ const defaultRequest: EvaluateRequest = {
             tipo: "AUTENTICACION",
             exitoso: false,
             coincidenciaBiometrica: true,
-            timestamp: new Date(Date.now() - 300000).toISOString(),
+            timestamp: ts(300000),
         },
     ],
     eventosPorMesaDelPuesto: {
@@ -109,7 +113,7 @@ const defaultRequest: EvaluateRequest = {
                 tipo: "AUTENTICACION",
                 exitoso: true,
                 coincidenciaBiometrica: true,
-                timestamp: new Date(Date.now() - 600000).toISOString(),
+                timestamp: ts(600000),
             },
         ],
         "MESA-002": [
@@ -120,7 +124,7 @@ const defaultRequest: EvaluateRequest = {
                 tipo: "AUTENTICACION",
                 exitoso: true,
                 coincidenciaBiometrica: true,
-                timestamp: new Date(Date.now() - 900000).toISOString(),
+                timestamp: ts(900000),
             },
         ],
     },
