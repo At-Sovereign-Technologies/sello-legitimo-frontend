@@ -83,52 +83,65 @@ function ts(offsetMs: number = 0): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
-const defaultRequest: EvaluateRequest = {
-    eventoActual: {
-        tableId: "MESA-001",
-        pollingStation: "PUESTO-001",
-        documentId: "1234567890",
-        tipo: "AUTENTICACION",
-        exitoso: false,
-        coincidenciaBiometrica: false,
-        timestamp: ts(),
-    },
+function evento(t: string, mesa: string, doc: string, ok: boolean, bio: boolean, off: number) {
+    return { tableId: mesa, pollingStation: "PUESTO-001", documentId: doc, tipo: t, exitoso: ok, coincidenciaBiometrica: bio, timestamp: ts(off) }
+}
+
+// Preset 1: Autenticaciones fallidas en ventana corta
+// Dispara: FAILED_AUTH_ATTEMPTS, BIOMETRIC_INCONSISTENCY, ANOMALOUS_TIME_PATTERN, IRREGULAR_TABLE_BEHAVIOR
+const authFailPreset: EvaluateRequest = {
+    eventoActual: evento("AUTENTICACION", "MESA-001", "1234567890", false, false, 0),
     eventosHistoricos: [
-        {
-            tableId: "MESA-001",
-            pollingStation: "PUESTO-001",
-            documentId: "1234567890",
-            tipo: "AUTENTICACION",
-            exitoso: false,
-            coincidenciaBiometrica: true,
-            timestamp: ts(300000),
-        },
+        evento("AUTENTICACION", "MESA-001", "1234567890", false, false, 10),
+        evento("AUTENTICACION", "MESA-001", "1234567890", false, false, 20),
+        evento("AUTENTICACION", "MESA-001", "1234567890", false, false, 30),
+        evento("AUTENTICACION", "MESA-001", "1234567890", false, false, 40),
+        evento("AUTENTICACION", "MESA-001", "1234567890", false, false, 50),
     ],
     eventosPorMesaDelPuesto: {
         "MESA-001": [
-            {
-                tableId: "MESA-001",
-                pollingStation: "PUESTO-001",
-                documentId: "9876543210",
-                tipo: "AUTENTICACION",
-                exitoso: true,
-                coincidenciaBiometrica: true,
-                timestamp: ts(600000),
-            },
+            evento("AUTENTICACION", "MESA-001", "DOC-A", true, true, 1000),
+            evento("AUTENTICACION", "MESA-001", "DOC-B", true, true, 2000),
+            evento("AUTENTICACION", "MESA-001", "DOC-C", true, true, 3000),
+            evento("AUTENTICACION", "MESA-001", "DOC-D", true, true, 4000),
+            evento("AUTENTICACION", "MESA-001", "DOC-E", true, true, 5000),
+            evento("AUTENTICACION", "MESA-001", "DOC-F", true, true, 6000),
         ],
-        "MESA-002": [
-            {
-                tableId: "MESA-002",
-                pollingStation: "PUESTO-001",
-                documentId: "1122334455",
-                tipo: "AUTENTICACION",
-                exitoso: true,
-                coincidenciaBiometrica: true,
-                timestamp: ts(900000),
-            },
-        ],
+        "MESA-002": [evento("AUTENTICACION", "MESA-002", "DOC-G", true, true, 200)],
+        "MESA-003": [evento("AUTENTICACION", "MESA-003", "DOC-H", true, true, 200)],
+        "MESA-004": [evento("AUTENTICACION", "MESA-004", "DOC-I", true, true, 200)],
+        "MESA-005": [evento("AUTENTICACION", "MESA-005", "DOC-J", true, true, 200)],
+        "MESA-006": [evento("AUTENTICACION", "MESA-006", "DOC-K", true, true, 200)],
     },
 }
+
+// Preset 2: Intento de voto duplicado (mismo documento ya voto exitosamente)
+// Dispara: DUPLICATE_VOTE_ATTEMPT, IRREGULAR_TABLE_BEHAVIOR
+const duplicateVotePreset: EvaluateRequest = {
+    eventoActual: evento("VOTO", "MESA-001", "1234567890", true, true, 0),
+    eventosHistoricos: [
+        evento("VOTO", "MESA-001", "1234567890", true, true, 600000),
+    ],
+    eventosPorMesaDelPuesto: {
+        "MESA-001": [
+            evento("AUTENTICACION", "MESA-001", "DOC-A", true, true, 500),
+            evento("VOTO", "MESA-001", "DOC-A", true, true, 500),
+            evento("AUTENTICACION", "MESA-001", "DOC-B", true, true, 1500),
+            evento("VOTO", "MESA-001", "DOC-B", true, true, 1500),
+            evento("AUTENTICACION", "MESA-001", "DOC-C", true, true, 2500),
+            evento("VOTO", "MESA-001", "DOC-C", true, true, 2500),
+            evento("AUTENTICACION", "MESA-001", "DOC-D", true, true, 3500),
+            evento("VOTO", "MESA-001", "DOC-D", true, true, 3500),
+        ],
+        "MESA-002": [evento("AUTENTICACION", "MESA-002", "DOC-E", true, true, 1000), evento("VOTO", "MESA-002", "DOC-E", true, true, 1000)],
+        "MESA-003": [evento("AUTENTICACION", "MESA-003", "DOC-F", true, true, 1000), evento("VOTO", "MESA-003", "DOC-F", true, true, 1000)],
+        "MESA-004": [evento("AUTENTICACION", "MESA-004", "DOC-G", true, true, 1000), evento("VOTO", "MESA-004", "DOC-G", true, true, 1000)],
+        "MESA-005": [evento("AUTENTICACION", "MESA-005", "DOC-H", true, true, 1000), evento("VOTO", "MESA-005", "DOC-H", true, true, 1000)],
+        "MESA-006": [evento("AUTENTICACION", "MESA-006", "DOC-I", true, true, 1000), evento("VOTO", "MESA-006", "DOC-I", true, true, 1000)],
+    },
+}
+
+const defaultRequest = authFailPreset
 
 // -- Pagina principal --
 
@@ -157,6 +170,12 @@ export default function EvaluacionAntifraude() {
         } finally {
             setLoading(false)
         }
+    }
+
+    function loadPreset(preset: EvaluateRequest) {
+        setRequestJson(JSON.stringify(preset, null, 2))
+        setResult(null)
+        setError(null)
     }
 
     const filteredAlerts = result
@@ -190,20 +209,36 @@ export default function EvaluacionAntifraude() {
                             className="w-full border rounded-lg px-4 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-red-200 transition resize-y bg-gray-50"
                             spellCheck={false}
                         />
-                        <button
-                            onClick={handleEvaluate}
-                            disabled={loading}
-                            className="w-full mt-4 bg-red-500 text-white py-3 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-60"
-                        >
-                            {loading ? (
-                                <Loader2 size={18} className="animate-spin" />
-                            ) : (
-                                <>
-                                    <Send size={16} />
-                                    Evaluar eventos
-                                </>
-                            )}
-                        </button>
+                        <div className="flex gap-2 mt-4">
+                            <button
+                                onClick={() => loadPreset(authFailPreset)}
+                                disabled={loading}
+                                className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl font-medium hover:bg-gray-200 transition text-sm"
+                            >
+                                Autenticaciones fallidas
+                            </button>
+                            <button
+                                onClick={() => loadPreset(duplicateVotePreset)}
+                                disabled={loading}
+                                className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl font-medium hover:bg-gray-200 transition text-sm"
+                            >
+                                Voto duplicado
+                            </button>
+                            <button
+                                onClick={handleEvaluate}
+                                disabled={loading}
+                                className="flex-1 bg-red-500 text-white py-2.5 rounded-xl font-semibold hover:bg-red-600 transition flex items-center justify-center gap-2 disabled:opacity-60"
+                            >
+                                {loading ? (
+                                    <Loader2 size={18} className="animate-spin" />
+                                ) : (
+                                    <>
+                                        <Send size={16} />
+                                        Evaluar
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Error */}
