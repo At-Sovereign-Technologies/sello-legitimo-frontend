@@ -1,6 +1,6 @@
 import { createJsonHeaders, getErrorMessage } from "./auth.api";
 
-const DEFAULT_JURADOS_URL = "http://localhost:8083";
+const DEFAULT_JURADOS_URL = "";
 
 function getJuradosBaseUrl(): string {
     const configuredUrl = (
